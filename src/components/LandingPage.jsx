@@ -13,6 +13,7 @@ import {
   calculateLinearRegression,
   calculatePoisson,
 } from '../utils/statsEngine';
+import heroBackground from '../assets/hero-bg.png';
 import BrandMark from './BrandMark';
 import MathFormula from './MathFormula';
 
@@ -227,13 +228,6 @@ function LandingPage({
             >
               Dataset
             </button>
-            <button
-              type="button"
-              onClick={() => scrollToSection('tentang')}
-              className="cursor-pointer text-[13px] font-medium text-zinc-600 transition-colors hover:text-zinc-950"
-            >
-              Tentang Studi Kasus
-            </button>
           </nav>
 
           {/* Kanan: Tombol Dashboard */}
@@ -247,8 +241,11 @@ function LandingPage({
         </div>
       </header>
 
-      {/* Hero Section dengan tipografi editorial dan latar grid halus */}
-      <section className="relative overflow-hidden pt-16 pb-20 sm:pt-20 sm:pb-24">
+      {/* Hero Section dengan tipografi editorial */}
+      <section
+        className="relative overflow-hidden bg-cover bg-center bg-no-repeat pt-16 pb-20 sm:pt-20 sm:pb-24"
+        style={{ backgroundImage: `url(${heroBackground})` }}
+      >
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 [mask-image:linear-gradient(to_bottom,black_66%,transparent_100%)]"
@@ -277,42 +274,32 @@ function LandingPage({
             <h1 className="hero-title relative z-10 text-[clamp(2.75rem,8.2vw,7rem)] font-black leading-[0.84] tracking-[-0.065em]">
               <span className="block whitespace-nowrap">
                 <span className="hero-word-ink">Ubah</span>
-                <span className="hero-word-orange hero-word-aspirasi ml-[0.06em]">
+                <span className="hero-word-orange hero-word-aspirasi ml-[0.25em]">
                   aspirasi
                 </span>
               </span>
-              <span className="hero-word-ink block">mahasiswa</span>
-              <span className="mt-[0.5em] flex items-end gap-[0.12em] pl-[0.02em] whitespace-nowrap">
+              <span className="hero-word-ink block mt-[0.1em]">mahasiswa</span>
+              <span className="mt-[0.3em] flex items-end gap-[0.12em] pl-[0.02em] whitespace-nowrap">
                 <span className="hero-script hero-word-ink mb-[0.04em] text-[0.55em] font-normal tracking-[-0.06em]">
                   menjadi
                 </span>
                 <span className="hero-word-orange text-[0.7em] tracking-[-0.055em]">
                   keputusan
                 </span>
-              </span>
-              <span className="-mt-[0.1em] block pr-[0.5em] text-right text-[0.72em] tracking-[-0.055em]">
-                <span className="hero-word-teal hero-word-terukur">terukur</span>
+
+                <span className="translate-y-10 block pr-[0.5em] text-right text-[0.72em] tracking-[-0.055em] ml-[0.05em]">
+                  <span className="hero-word-teal hero-word-terukur">terukur</span>
+                </span>
               </span>
             </h1>
 
-            <div className="-mt-2 max-w-[470px] sm:-mt-7">
+            <div className="pt-20 max-w-[470px]">
               <p className="text-sm leading-relaxed text-slate-600 sm:text-base">
                 Platform analisis pola distribusi, uji independensi Chi-Square,
-                dan prediksi tren volume aspirasi Advokastra UPI Cibiru berbasis
+                dan prediksi tren volume aspirasi berbasis
                 data.
               </p>
-
-              {/* 2 Tombol CTA Utama */}
               <div className="mt-5 flex flex-wrap items-center gap-3">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".csv,text/csv"
-                  onChange={handleFileChange}
-                  className="hidden"
-                  aria-label="Import Dataset CSV"
-                />
-
                 <button
                   type="button"
                   onClick={() => onOpenDashboard('overview')}
@@ -320,30 +307,7 @@ function LandingPage({
                 >
                   Mulai Analisis
                 </button>
-
-                <button
-                  type="button"
-                  disabled={isImporting}
-                  onClick={() => fileInputRef.current?.click()}
-                  className="glass-button glass-button-light inline-flex cursor-pointer items-center gap-1.5 rounded-xl px-5 py-3 text-sm font-medium text-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {isImporting && (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  )}
-                  <span>
-                    {isImporting ? 'Memproses CSV...' : 'Import Dataset CSV'}
-                  </span>
-                </button>
               </div>
-
-              <button
-                type="button"
-                onClick={onDownloadTemplate}
-                className="mt-4 inline-flex cursor-pointer items-center gap-1 text-xs font-medium text-slate-500 transition-colors hover:text-slate-900"
-              >
-                <span>Unduh template CSV</span>
-                <ArrowUpRight className="h-3 w-3" />
-              </button>
             </div>
           </div>
 

@@ -150,23 +150,23 @@ html[data-ios-transition-scope="tab"] .ios-dashboard-content {
 }
 
 .animate-ios-page-forward {
-  animation: iosPageEnterForward 560ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  animation: iosPageEnterForward 740ms cubic-bezier(0.32, 0.72, 0, 1) both;
 }
 
 .animate-ios-page-back {
-  animation: iosPageEnterBack 560ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  animation: iosPageEnterBack 740ms cubic-bezier(0.32, 0.72, 0, 1) both;
 }
 
 .animate-ios-tab-forward {
-  animation: iosTabEnterForward 480ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  animation: iosTabEnterForward 640ms cubic-bezier(0.32, 0.72, 0, 1) both;
 }
 
 .animate-ios-tab-back {
-  animation: iosTabEnterBack 480ms cubic-bezier(0.32, 0.72, 0, 1) both;
+  animation: iosTabEnterBack 640ms cubic-bezier(0.32, 0.72, 0, 1) both;
 }
 
 ::view-transition-group(app-page) {
-  animation-duration: 580ms;
+  animation-duration: 760ms;
   animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
@@ -185,53 +185,53 @@ html[data-ios-transition-scope="tab"] .ios-dashboard-content {
 html[data-ios-transition-scope="page"][data-ios-transition-direction="forward"]
   ::view-transition-old(app-page) {
   z-index: 1;
-  animation: 580ms cubic-bezier(0.32, 0.72, 0, 1) both iosPageOldForward;
+  animation: 760ms cubic-bezier(0.32, 0.72, 0, 1) both iosPageOldForward;
 }
 
 html[data-ios-transition-scope="page"][data-ios-transition-direction="forward"]
   ::view-transition-new(app-page) {
   z-index: 2;
   box-shadow: -12px 0 28px rgb(9 9 11 / 12%);
-  animation: 580ms cubic-bezier(0.32, 0.72, 0, 1) both iosPageNewForward;
+  animation: 760ms cubic-bezier(0.32, 0.72, 0, 1) both iosPageNewForward;
 }
 
 html[data-ios-transition-scope="page"][data-ios-transition-direction="back"]
   ::view-transition-old(app-page) {
   z-index: 2;
   box-shadow: -12px 0 28px rgb(9 9 11 / 12%);
-  animation: 580ms cubic-bezier(0.32, 0.72, 0, 1) both iosPageOldBack;
+  animation: 760ms cubic-bezier(0.32, 0.72, 0, 1) both iosPageOldBack;
 }
 
 html[data-ios-transition-scope="page"][data-ios-transition-direction="back"]
   ::view-transition-new(app-page) {
   z-index: 1;
-  animation: 580ms cubic-bezier(0.32, 0.72, 0, 1) both iosPageNewBack;
+  animation: 760ms cubic-bezier(0.32, 0.72, 0, 1) both iosPageNewBack;
 }
 
 html[data-ios-transition-scope="tab"] ::view-transition-group(dashboard-content) {
-  animation-duration: 500ms;
+  animation-duration: 660ms;
   animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
   overflow: clip;
 }
 
 html[data-ios-transition-scope="tab"][data-ios-transition-direction="forward"]
   ::view-transition-old(dashboard-content) {
-  animation: 500ms cubic-bezier(0.32, 0.72, 0, 1) both iosTabOldForward;
+  animation: 660ms cubic-bezier(0.32, 0.72, 0, 1) both iosTabOldForward;
 }
 
 html[data-ios-transition-scope="tab"][data-ios-transition-direction="forward"]
   ::view-transition-new(dashboard-content) {
-  animation: 500ms cubic-bezier(0.32, 0.72, 0, 1) both iosTabNewForward;
+  animation: 660ms cubic-bezier(0.32, 0.72, 0, 1) both iosTabNewForward;
 }
 
 html[data-ios-transition-scope="tab"][data-ios-transition-direction="back"]
   ::view-transition-old(dashboard-content) {
-  animation: 500ms cubic-bezier(0.32, 0.72, 0, 1) both iosTabOldBack;
+  animation: 660ms cubic-bezier(0.32, 0.72, 0, 1) both iosTabOldBack;
 }
 
 html[data-ios-transition-scope="tab"][data-ios-transition-direction="back"]
   ::view-transition-new(dashboard-content) {
-  animation: 500ms cubic-bezier(0.32, 0.72, 0, 1) both iosTabNewBack;
+  animation: 660ms cubic-bezier(0.32, 0.72, 0, 1) both iosTabNewBack;
 }
 
 @keyframes iosPageOldForward {
