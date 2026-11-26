@@ -10,9 +10,11 @@ import {
 
 ensureChartsRegistered();
 
-function RegressionView({ dataset = [] }) {
+function RegressionView({ dataset = [], analysisConfig }) {
   const [categoryFilter, setCategoryFilter] = useState('ALL');
-  const [predictAhead, setPredictAhead] = useState(3);
+  const [predictAhead, setPredictAhead] = useState(
+    analysisConfig.defaults.regressionPredictAhead
+  );
 
   const categoryOptions = useMemo(
     () =>

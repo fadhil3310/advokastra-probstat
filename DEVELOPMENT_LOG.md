@@ -6,6 +6,37 @@ Dokumen ini merupakan log terpusat untuk mencatat seluruh pengerjaan task, keput
 
 ---
 
+## [Task #14] — 2026-11-26
+**Judul:** Migrasi Data Analitik & Autentikasi ke Firebase
+
+### Ringkasan Pekerjaan
+1. Memindahkan dataset default 90 baris, domain analisis, opsi statistik, dan contoh template CSV dari runtime source ke seed fixture serta Cloud Firestore.
+2. Menambahkan Firebase Web SDK untuk Cloud Firestore dan Firebase Authentication (Email/Password serta Anonymous/guest).
+3. Menghapus sesi login simulasi berbasis `sessionStorage`; status pengguna kini mengikuti observer Firebase Auth.
+4. Menambahkan seed script server Firestore yang idempotent, `.env.example`, aturan Firestore read-only untuk client, dokumentasi setup, dan `AGENTS.md` untuk agent pengembang.
+5. Landing-page copy dan formula tetap berada di source code sesuai keputusan scope; CSV unggahan tetap bersifat dataset sementara di memori.
+
+### Struktur Firestore
+- `datasets/default`
+- `datasets/default/aspirations/{id}`
+- `app_config/analysis`
+- `app_config/csv_template`
+
+### Perintah Setup
+```sh
+cp .env.example .env.local
+npm run seed:firebase
+firebase deploy --only firestore:rules
+```
+
+### Verifikasi
+- `npm test`: seluruh unit test lulus.
+- `npm run lint`: 0 error.
+- `npm run build`: build produksi berhasil.
+- `npm audit`: 0 vulnerability.
+
+---
+
 ## [Task #13] — 2026-11-26 01:36 WIB
 **Judul:** Inisialisasi Commit & Push Proyek ke Repository GitHub (`maddhdyt/advokastra-probstat`)
 

@@ -1,16 +1,37 @@
-# React + Vite
+# Advokastra Probstat
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Dashboard probabilitas dan statistika untuk menganalisis aspirasi mahasiswa UPI Kampus Cibiru. Aplikasi memakai React + Vite, Firebase Authentication, dan Cloud Firestore.
 
-Currently, two official plugins are available:
+## Setup Firebase
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+1. Buat Firebase Web App dan Cloud Firestore.
+2. Aktifkan Authentication provider **Email/Password** dan **Anonymous**, lalu buat minimal satu akun Email/Password di Firebase Console.
+3. Salin `.env.example` menjadi `.env.local`, lalu isi konfigurasi Web SDK.
+4. Sediakan kredensial server Firestore melalui `GOOGLE_APPLICATION_CREDENTIALS` atau variabel `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, dan `FIREBASE_PRIVATE_KEY`.
+5. Seed data awal:
 
-## React Compiler
+```sh
+npm run seed:firebase
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+6. Deploy `firestore.rules` menggunakan Firebase CLI:
 
-## Expanding the Oxlint configuration
+```sh
+firebase deploy --only firestore:rules
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+7. Jalankan aplikasi:
+
+```sh
+npm run dev
+```
+
+Seed command bersifat idempotent dan menyinkronkan koleksi default: dokumen dengan ID sama ditimpa, sedangkan dokumen default lama yang tidak lagi ada pada fixture dihapus. Detail struktur Firestore dan aturan bagi coding agents tersedia di [AGENTS.md](./AGENTS.md).
+
+## Verifikasi
+
+```sh
+npm test
+npm run lint
+npm run build
+```

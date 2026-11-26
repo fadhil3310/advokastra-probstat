@@ -12,10 +12,10 @@ import OverviewView from './components/dashboard/OverviewView';
 import PoissonView from './components/dashboard/PoissonView';
 import ProportionView from './components/dashboard/ProportionView';
 import RegressionView from './components/dashboard/RegressionView';
-import defaultDataset from './data/defaultDataset';
+import { EMPTY_ANALYSIS_CONFIG } from './config/analysisDefaults';
+import { observeAuthState, logoutFirebaseUser } from './services/authService';
+import { loadApplicationData } from './services/firestoreService';
 import { downloadCSVTemplate, parseAspirasiCSV } from './utils/csvHelper';
-
-const SESSION_STORAGE_KEY = 'advokastra_probstat_session';
 
 const MENU_TITLES = {
   overview: 'Ikhtisar & Pola',
@@ -26,44 +26,30 @@ const MENU_TITLES = {
   poisson: 'Peluang Lonjakan (Poisson)',
 };
 
-function loadSavedSession() {
-  try {
-    if (typeof window === 'undefined' || !window.sessionStorage) return null;
-    const raw = window.sessionStorage.getItem(SESSION_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-function persistSession(user) {
-  try {
-    if (typeof window === 'undefined' || !window.sessionStorage) return;
-    if (user) {
-      window.sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(user));
-    } else {
-      window.sessionStorage.removeItem(SESSION_STORAGE_KEY);
-    }
-  } catch {
-    // Abaikan error penyimpanan jika sessionStorage tidak tersedia
-  }
-}
-
 function waitMs(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function App() {
   const [view, setView] = useState('landing');
-  const [authUser, setAuthUser] = useState(() => loadSavedSession());
+  const [authUser, setAuthUser] = useState(null);
   const [pendingTab, setPendingTab] = useState('overview');
   const [loginHint, setLoginHint] = useState(null);
 
-  const [dataset, setDataset] = useState(defaultDataset);
+  const [dataset, setDataset] = useState([]);
+  const [firebaseDataset, setFirebaseDataset] = useState([]);
   const [datasetSource, setDatasetSource] = useState({
     isDefault: true,
-    name: 'Default',
+    name: '',
   });
+  const [firebaseDatasetSource, setFirebaseDatasetSource] = useState({
+    isDefault: true,
+    name: '',
+  });
+  const [analysisConfig, setAnalysisConfig] = useState(EMPTY_ANALYSIS_CONFIG);
+  const [csvTemplate, setCsvTemplate] = useState(null);
+  const [isAppDataLoading, setIsAppDataLoading] = useState(true);
+  const [appDataError, setAppDataError] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [loadingTabLabel, setLoadingTabLabel] = useState(null);
   const [isImporting, setIsImporting] = useState(false);
@@ -75,7 +61,37 @@ function App() {
   const tabTimerRef = useRef(null);
 
   useEffect(() => {
+    const unsubscribeAuth = observeAuthState(setAuthUser);
+    let cancelled = false;
+
+    loadApplicationData()
+      .then((applicationData) => {
+        if (cancelled) return;
+        setDataset(applicationData.dataset);
+        setFirebaseDataset(applicationData.dataset);
+        setDatasetSource(applicationData.datasetSource);
+        setFirebaseDatasetSource(applicationData.datasetSource);
+        setAnalysisConfig(applicationData.analysisConfig);
+        setCsvTemplate(applicationData.csvTemplate);
+        setAppDataError(null);
+      })
+      .catch((error) => {
+        if (cancelled) return;
+        const message = error?.message || 'Data aplikasi gagal dimuat dari Firebase.';
+        setAppDataError(message);
+        setNotification({
+          type: 'error',
+          title: 'Firebase belum siap',
+          details: [message],
+        });
+      })
+      .finally(() => {
+        if (!cancelled) setIsAppDataLoading(false);
+      });
+
     return () => {
+      cancelled = true;
+      unsubscribeAuth();
       if (routeTimerRef.current) clearTimeout(routeTimerRef.current);
       if (tabTimerRef.current) clearTimeout(tabTimerRef.current);
     };
@@ -113,11 +129,27 @@ function App() {
         .map((row) => String(row?.prodi ?? '').trim())
         .filter(Boolean)
     ).size;
-    return `Periode: ${weeks || 12} Minggu · ${prodis || 5} Prodi`;
+    return `Periode: ${weeks} Minggu · ${prodis} Prodi`;
   }, [dataset]);
 
   const handleOpenDashboard = (tabId = 'overview') => {
     const targetTab = MENU_TITLES[tabId] ? tabId : 'overview';
+    if (isAppDataLoading) {
+      setNotification({
+        type: 'info',
+        title: 'Data Firebase sedang dimuat',
+        details: ['Tunggu hingga dataset dan konfigurasi analisis selesai dimuat.'],
+      });
+      return;
+    }
+    if (appDataError) {
+      setNotification({
+        type: 'error',
+        title: 'Dashboard belum dapat dibuka',
+        details: [appDataError],
+      });
+      return;
+    }
     if (authUser) {
       transitionToView(
         'dashboard',
@@ -145,7 +177,6 @@ function App() {
       'Menyiapkan ruang kerja analisis...',
       () => {
         setAuthUser(user);
-        persistSession(user);
         setActiveTab(targetTab);
         setLoginHint(null);
       },
@@ -153,25 +184,42 @@ function App() {
     );
   };
 
-  const handleLogout = () => {
-    transitionToView(
-      'landing',
-      'Mengakhiri sesi...',
-      () => {
-        setAuthUser(null);
-        persistSession(null);
-        setPendingTab('overview');
-        setLoginHint(null);
-        setIsDrawerOpen(false);
-      },
-      340
-    );
+  const handleLogout = async () => {
+    setRouteLoadingMessage('Mengakhiri sesi...');
+    try {
+      await logoutFirebaseUser();
+      transitionToView(
+        'landing',
+        'Mengakhiri sesi...',
+        () => {
+          setAuthUser(null);
+          setPendingTab('overview');
+          setLoginHint(null);
+          setIsDrawerOpen(false);
+        },
+        220
+      );
+    } catch (error) {
+      setRouteLoadingMessage(null);
+      setNotification({
+        type: 'error',
+        title: 'Gagal keluar dari Firebase',
+        details: [error?.message || 'Sesi tidak dapat diakhiri.'],
+      });
+    }
   };
 
   const handleImportCSV = async (file, { fromLanding = false } = {}) => {
     setIsImporting(true);
     try {
-      const [result] = await Promise.all([parseAspirasiCSV(file), waitMs(480)]);
+      const [result] = await Promise.all([
+        parseAspirasiCSV(file, {
+          domains: analysisConfig.domains,
+          requiredColumns: csvTemplate?.requiredColumns,
+          pendingStatus: analysisConfig.semantics.pendingStatus,
+        }),
+        waitMs(480),
+      ]);
       if (result.success) {
         setDataset(result.data);
         setDatasetSource({
@@ -223,27 +271,32 @@ function App() {
   };
 
   const handleDownloadTemplate = () => {
-    downloadCSVTemplate();
-    setNotification({
-      type: 'info',
-      title: 'Template CSV diunduh',
-      details: ['File "template_aspirasi_advokastra.csv" siap diisi dan diunggah kembali.'],
-    });
+    try {
+      downloadCSVTemplate(csvTemplate);
+      setNotification({
+        type: 'info',
+        title: 'Template CSV diunduh',
+        details: [`File "${csvTemplate.filename}" siap diisi dan diunggah kembali.`],
+      });
+    } catch (error) {
+      setNotification({
+        type: 'error',
+        title: 'Template CSV belum tersedia',
+        details: [error?.message || 'Konfigurasi template gagal dimuat dari Firebase.'],
+      });
+    }
   };
 
   const handleResetDataset = () => {
     if (tabTimerRef.current) clearTimeout(tabTimerRef.current);
     setLoadingTabLabel('Dataset Default');
     tabTimerRef.current = setTimeout(() => {
-      setDataset(defaultDataset);
-      setDatasetSource({
-        isDefault: true,
-        name: 'Default',
-      });
+      setDataset(firebaseDataset);
+      setDatasetSource(firebaseDatasetSource);
       setNotification({
         type: 'info',
         title: 'Dataset dikembalikan ke Default',
-        details: [`Memuat ulang ${defaultDataset.length} baris data aspirasi standar.`],
+        details: [`Memuat ulang ${firebaseDataset.length} baris data aspirasi dari Firestore.`],
       });
       setLoadingTabLabel(null);
     }, 320);
@@ -251,38 +304,44 @@ function App() {
 
   const isTabTransitioning = loadingTabLabel !== null;
   const currentMenuTitle = MENU_TITLES[activeTab] ?? MENU_TITLES.overview;
-  const activeDatasetLabel = datasetSource.isDefault ? 'Default' : datasetSource.name;
+  const activeDatasetLabel = datasetSource.name;
 
   const renderDashboardContent = () => {
     switch (activeTab) {
       case 'overview':
-        return <OverviewView dataset={dataset} />;
+        return <OverviewView dataset={dataset} analysisConfig={analysisConfig} />;
       case 'dataset':
         return (
           <DatasetExplorerView
             dataset={dataset}
             datasetName={activeDatasetLabel}
+            analysisConfig={analysisConfig}
           />
         );
       case 'proportion':
-        return <ProportionView dataset={dataset} />;
+        return <ProportionView dataset={dataset} analysisConfig={analysisConfig} />;
       case 'chisquare':
-        return <ChiSquareView dataset={dataset} />;
+        return <ChiSquareView dataset={dataset} analysisConfig={analysisConfig} />;
       case 'regression':
-        return <RegressionView dataset={dataset} />;
+        return <RegressionView dataset={dataset} analysisConfig={analysisConfig} />;
       case 'poisson':
-        return <PoissonView dataset={dataset} />;
+        return <PoissonView dataset={dataset} analysisConfig={analysisConfig} />;
       default:
-        return <OverviewView dataset={dataset} />;
+        return <OverviewView dataset={dataset} analysisConfig={analysisConfig} />;
     }
   };
 
   return (
     <>
       <TopProgressBar
-        active={Boolean(routeLoadingMessage) || isImporting}
+        active={Boolean(routeLoadingMessage) || isImporting || isAppDataLoading}
         message={
-          routeLoadingMessage || (isImporting ? 'Memproses file CSV...' : null)
+          routeLoadingMessage ||
+          (isImporting
+            ? 'Memproses file CSV...'
+            : isAppDataLoading
+              ? 'Memuat data dari Firebase...'
+              : null)
         }
       />
 
@@ -327,7 +386,6 @@ function App() {
             onOpenDrawer={() => setIsDrawerOpen(true)}
             authUser={authUser}
             datasetName={datasetSource.name}
-            isDefaultDataset={datasetSource.isDefault}
             rowCount={dataset.length}
           />
 
@@ -409,7 +467,6 @@ function App() {
             onClose={() => setIsDrawerOpen(false)}
             dataset={dataset}
             datasetName={datasetSource.name}
-            isDefaultDataset={datasetSource.isDefault}
           />
         </div>
       )}

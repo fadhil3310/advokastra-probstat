@@ -10,16 +10,13 @@ import {
 
 ensureChartsRegistered();
 
-const DIMENSION_OPTIONS = [
-  { value: 'kategori', label: 'Kategori Aspirasi' },
-  { value: 'prodi', label: 'Program Studi' },
-  { value: 'angkatan', label: 'Angkatan' },
-  { value: 'urgensi', label: 'Tingkat Urgensi' },
-  { value: 'status', label: 'Status Penanganan' },
-];
-
-function OverviewView({ dataset = [] }) {
-  const [selectedField, setSelectedField] = useState('kategori');
+function OverviewView({ dataset = [], analysisConfig }) {
+  const [selectedField, setSelectedField] = useState(
+    analysisConfig.defaults.overviewField
+  );
+  const dimensionOptions = analysisConfig.variableOptions;
+  const highUrgency = analysisConfig.semantics.highUrgency;
+  const completedStatus = analysisConfig.semantics.completedStatus;
 
   const descriptive = useMemo(
     () => calculateDescriptive(dataset, selectedField),
@@ -28,24 +25,24 @@ function OverviewView({ dataset = [] }) {
 
   const urgencySummary = useMemo(() => {
     const urgensiStats = calculateDescriptive(dataset, 'urgensi');
-    const highEntry = urgensiStats.frequencies.find((f) => f.value === 'Tinggi');
+    const highEntry = urgensiStats.frequencies.find((f) => f.value === highUrgency);
     return {
       highCount: highEntry?.count ?? 0,
       highPct: highEntry?.relativeFreq ?? 0,
     };
-  }, [dataset]);
+  }, [dataset, highUrgency]);
 
   const statusSummary = useMemo(() => {
     const statusStats = calculateDescriptive(dataset, 'status');
-    const doneEntry = statusStats.frequencies.find((f) => f.value === 'Selesai');
+    const doneEntry = statusStats.frequencies.find((f) => f.value === completedStatus);
     return {
       doneCount: doneEntry?.count ?? 0,
       donePct: doneEntry?.relativeFreq ?? 0,
     };
-  }, [dataset]);
+  }, [dataset, completedStatus]);
 
   const activeDimLabel =
-    DIMENSION_OPTIONS.find((opt) => opt.value === selectedField)?.label ?? selectedField;
+    dimensionOptions.find((opt) => opt.value === selectedField)?.label ?? selectedField;
 
   const chartData = useMemo(() => {
     const modeSet = new Set(descriptive.mode.values);
@@ -114,7 +111,7 @@ function OverviewView({ dataset = [] }) {
       {/* Bar Pemilih Dimensi */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-1.5">
-          {DIMENSION_OPTIONS.map((option) => {
+          {dimensionOptions.map((option) => {
             const isActive = option.value === selectedField;
             return (
               <button
@@ -183,7 +180,9 @@ function OverviewView({ dataset = [] }) {
         </div>
 
         <div className="rounded-xl border border-zinc-200 bg-white p-4">
-          <p className="text-xs font-medium text-zinc-500">Urgensi Tinggi</p>
+          <p className="text-xs font-medium text-zinc-500">
+            Urgensi {highUrgency}
+          </p>
           <p className="mt-2 font-mono text-2xl font-semibold tabular-nums text-zinc-950">
             {urgencySummary.highCount}
           </p>

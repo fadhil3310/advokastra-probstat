@@ -6,7 +6,7 @@ import { ChevronRight, Download, Loader2, RotateCcw, Upload } from 'lucide-react
  */
 function TopHeader({
   menuTitle,
-  contextLabel = 'Periode: 12 Minggu · 5 Prodi',
+  contextLabel = '',
   isDefaultDataset = true,
   isImporting = false,
   isLoading = false,

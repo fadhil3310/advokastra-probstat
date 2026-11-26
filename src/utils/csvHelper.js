@@ -1,101 +1,29 @@
 import PapaModule from 'papaparse';
-import {
-  VALID_KATEGORI,
-  VALID_PRODI,
-  VALID_STATUS,
-  VALID_URGENSI,
-} from '../data/defaultDataset.js';
 
 const Papa = PapaModule?.default ?? PapaModule;
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
-export const REQUIRED_COLUMNS = [
-  'tanggal',
-  'prodi',
-  'angkatan',
-  'kategori',
-  'urgensi',
-  'status',
-];
+function createLookup(values = []) {
+  return new Map(values.map((value) => [String(value).toLowerCase(), String(value)]));
+}
 
-export const TEMPLATE_COLUMNS = [
-  'id',
-  'tanggal',
-  'minggu_ke',
-  'prodi',
-  'angkatan',
-  'kategori',
-  'urgensi',
-  'status',
-  'durasi_hari',
-];
-
-export const TEMPLATE_FILENAME = 'template_aspirasi_advokastra.csv';
-
-const TEMPLATE_SAMPLE_ROWS = [
-  {
-    id: 'ASP-001',
-    tanggal: '2026-09-01',
-    minggu_ke: 1,
-    prodi: 'RPL',
-    angkatan: '2024',
-    kategori: 'Akademik & Perkuliahan',
-    urgensi: 'Tinggi',
-    status: 'Selesai',
-    durasi_hari: 3,
-  },
-  {
-    id: 'ASP-002',
-    tanggal: '2026-09-04',
-    minggu_ke: 1,
-    prodi: 'PGSD',
-    angkatan: '2023',
-    kategori: 'Fasilitas Kampus',
-    urgensi: 'Sedang',
-    status: 'Selesai',
-    durasi_hari: 8,
-  },
-  {
-    id: 'ASP-003',
-    tanggal: '2026-09-08',
-    minggu_ke: 2,
-    prodi: 'Tekkom',
-    angkatan: '2025',
-    kategori: 'UKT & Keuangan',
-    urgensi: 'Tinggi',
-    status: 'Dalam Proses',
-    durasi_hari: 10,
-  },
-  {
-    id: 'ASP-004',
-    tanggal: '2026-09-12',
-    minggu_ke: 2,
-    prodi: 'Multimedia',
-    angkatan: '2024',
-    kategori: 'Layanan Administrasi',
-    urgensi: 'Rendah',
-    status: 'Selesai',
-    durasi_hari: 4,
-  },
-  {
-    id: 'ASP-005',
-    tanggal: '2026-09-16',
-    minggu_ke: 3,
-    prodi: 'PGPAUD',
-    angkatan: '2025',
-    kategori: 'Kemahasiswaan',
-    urgensi: 'Rendah',
-    status: 'Belum Diproses',
-    durasi_hari: '',
-  },
-];
-
-// Peta normalisasi huruf besar/kecil agar nilai konsisten dengan skema aplikasi
-const PRODI_LOOKUP = new Map(VALID_PRODI.map((v) => [v.toLowerCase(), v]));
-const KATEGORI_LOOKUP = new Map(VALID_KATEGORI.map((v) => [v.toLowerCase(), v]));
-const URGENSI_LOOKUP = new Map(VALID_URGENSI.map((v) => [v.toLowerCase(), v]));
-const STATUS_LOOKUP = new Map(VALID_STATUS.map((v) => [v.toLowerCase(), v]));
+function resolveCsvConfig(options = {}) {
+  const domains = options.domains ?? {};
+  return {
+    requiredColumns:
+      Array.isArray(options.requiredColumns) && options.requiredColumns.length > 0
+        ? options.requiredColumns
+        : [],
+    lookups: {
+      prodi: createLookup(domains.prodi),
+      kategori: createLookup(domains.kategori),
+      urgensi: createLookup(domains.urgensi),
+      status: createLookup(domains.status),
+    },
+    pendingStatus: String(options.pendingStatus ?? ''),
+  };
+}
 
 /**
  * Mendeteksi delimiter CSV (`,` atau `;`) dari baris header pertama di luar tanda kutip.
@@ -232,7 +160,11 @@ function canonicalizeValue(raw, lookupMap) {
  *   }
  * }>}
  */
-export async function parseAspirasiCSV(input) {
+export async function parseAspirasiCSV(input, options = {}) {
+  const { requiredColumns, lookups, pendingStatus } = resolveCsvConfig(options);
+  if (requiredColumns.length === 0) {
+    throw new Error('Konfigurasi requiredColumns dari Firestore belum tersedia.');
+  }
   let rawText;
   try {
     rawText = await readCsvInput(input);
@@ -263,7 +195,7 @@ export async function parseAspirasiCSV(input) {
         totalRows: 0,
         validRows: 0,
         delimiter: ',',
-        missingColumns: [...REQUIRED_COLUMNS],
+        missingColumns: [...requiredColumns],
         autoCalculatedWeeks: false,
       },
     };
@@ -282,14 +214,14 @@ export async function parseAspirasiCSV(input) {
 
   const actualDelimiter = parsed.meta?.delimiter || detectedDelimiter || ',';
   const headers = parsed.meta?.fields || [];
-  const missingColumns = REQUIRED_COLUMNS.filter((col) => !headers.includes(col));
+  const missingColumns = requiredColumns.filter((col) => !headers.includes(col));
 
   if (missingColumns.length > 0) {
     return {
       success: false,
       data: [],
       errors: [
-        `Kolom wajib tidak ditemukan pada CSV: ${missingColumns.join(', ')}. Kolom wajib adalah: ${REQUIRED_COLUMNS.join(', ')}.`,
+        `Kolom wajib tidak ditemukan pada CSV: ${missingColumns.join(', ')}. Kolom wajib adalah: ${requiredColumns.join(', ')}.`,
       ],
       warnings: [],
       meta: {
@@ -337,7 +269,7 @@ export async function parseAspirasiCSV(input) {
 
   rows.forEach((rawRow, index) => {
     const csvLine = index + 2; // +1 header, +1 1-based index
-    const rowMissing = REQUIRED_COLUMNS.filter(
+    const rowMissing = requiredColumns.filter(
       (col) => String(rawRow[col] ?? '').trim() === ''
     );
 
@@ -358,11 +290,11 @@ export async function parseAspirasiCSV(input) {
       minTimestamp = parsedDate.timestamp;
     }
 
-    const prodi = canonicalizeValue(rawRow.prodi, PRODI_LOOKUP);
+    const prodi = canonicalizeValue(rawRow.prodi, lookups.prodi);
     const angkatan = String(rawRow.angkatan).trim();
-    const kategori = canonicalizeValue(rawRow.kategori, KATEGORI_LOOKUP);
-    const urgensi = canonicalizeValue(rawRow.urgensi, URGENSI_LOOKUP);
-    const status = canonicalizeValue(rawRow.status, STATUS_LOOKUP);
+    const kategori = canonicalizeValue(rawRow.kategori, lookups.kategori);
+    const urgensi = canonicalizeValue(rawRow.urgensi, lookups.urgensi);
+    const status = canonicalizeValue(rawRow.status, lookups.status);
 
     let mingguKe = null;
     if (headers.includes('minggu_ke') && String(rawRow.minggu_ke ?? '').trim() !== '') {
@@ -380,10 +312,10 @@ export async function parseAspirasiCSV(input) {
 
     let durasiHari = null;
     const rawDuration = String(rawRow.durasi_hari ?? '').trim();
-    if (status === 'Belum Diproses') {
+    if (pendingStatus && status === pendingStatus) {
       if (rawDuration !== '' && rawDuration.toLowerCase() !== 'null' && rawDuration !== '-') {
         warnings.push(
-          `Baris ${csvLine}: durasi_hari diatur ke null karena status adalah "Belum Diproses".`
+          `Baris ${csvLine}: durasi_hari diatur ke null karena status adalah "${pendingStatus}".`
         );
       }
       durasiHari = null;
@@ -473,11 +405,18 @@ export async function parseAspirasiCSV(input) {
  * @param {',' | ';'} delimiter
  * @returns {string}
  */
-export function generateCSVTemplate(delimiter = ',') {
+export function generateCSVTemplate(templateConfig, delimiter = ',') {
+  const columns = templateConfig?.columns ?? [];
+  const sampleRows = templateConfig?.sampleRows ?? [];
+
+  if (columns.length === 0 || sampleRows.length === 0) {
+    throw new Error('Konfigurasi template CSV dari Firestore belum tersedia.');
+  }
+
   return Papa.unparse(
     {
-      fields: TEMPLATE_COLUMNS,
-      data: TEMPLATE_SAMPLE_ROWS.map((row) => TEMPLATE_COLUMNS.map((col) => row[col])),
+      fields: columns,
+      data: sampleRows.map((row) => columns.map((col) => row[col] ?? '')),
     },
     { delimiter }
   );
@@ -489,8 +428,12 @@ export function generateCSVTemplate(delimiter = ',') {
  * @param {',' | ';'} delimiter
  * @returns {string} Konten CSV yang dihasilkan
  */
-export function downloadCSVTemplate(filename = TEMPLATE_FILENAME, delimiter = ',') {
-  const csvContent = generateCSVTemplate(delimiter);
+export function downloadCSVTemplate(templateConfig, delimiter = ',') {
+  const filename = templateConfig?.filename;
+  if (!filename) {
+    throw new Error('Nama file template dari Firestore belum tersedia.');
+  }
+  const csvContent = generateCSVTemplate(templateConfig, delimiter);
 
   if (typeof document !== 'undefined' && typeof Blob !== 'undefined') {
     const blob = new Blob([`\uFEFF${csvContent}`], {

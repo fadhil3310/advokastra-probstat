@@ -13,6 +13,7 @@ import {
   calculateLinearRegression,
   calculatePoisson,
 } from '../utils/statsEngine';
+import BrandMark from './BrandMark';
 import MathFormula from './MathFormula';
 
 const WORKFLOW_STEPS = [
@@ -70,6 +71,82 @@ const STUDY_KATEGORI = [
 ];
 const STUDY_ANGKATAN = ['2022', '2023', '2024', '2025'];
 
+function HeroPaperIllustrations() {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 z-0 mx-auto max-w-[1280px]"
+    >
+      <div className="hero-paper hero-paper-data">
+        <span className="hero-paper-tape" />
+        <div className="flex items-center justify-between">
+          <span className="hero-paper-kicker">DATA / 90</span>
+          <span className="h-2 w-2 rounded-full bg-[#f36b2b]" />
+        </div>
+        <div className="mt-4 space-y-2">
+          <span className="hero-paper-line w-[72%]" />
+          <span className="hero-paper-line w-[88%]" />
+          <span className="hero-paper-line w-[55%]" />
+        </div>
+        <div className="mt-5 flex h-12 items-end gap-1.5 border-b border-slate-300/70 pb-1">
+          {[35, 58, 45, 82, 65, 92].map((height, index) => (
+            <span
+              key={height}
+              className="flex-1 rounded-t-sm bg-[#f36b2b]/75"
+              style={{ height: `${height}%`, opacity: 0.5 + index * 0.08 }}
+            />
+          ))}
+        </div>
+        <span className="hero-paper-note">aspirasi / minggu</span>
+      </div>
+
+      <div className="hero-paper hero-paper-test">
+        <span className="hero-paper-clip" />
+        <div className="flex items-start justify-between">
+          <div>
+            <span className="hero-paper-kicker">UJI HIPOTESIS</span>
+            <p className="mt-1 font-mono text-xl font-bold text-[#132238]">χ²</p>
+          </div>
+          <span className="rounded-full bg-teal-100 px-2 py-0.5 font-mono text-[7px] font-bold text-teal-700">
+            α .05
+          </span>
+        </div>
+        <div className="mt-4 grid grid-cols-3 overflow-hidden rounded-md border border-slate-300/80 text-center font-mono text-[7px] text-slate-500">
+          {['O', 'E', 'Δ', '18', '15', '3', '12', '14', '-2'].map((cell) => (
+            <span key={cell} className="border-r border-b border-slate-200 py-1.5">
+              {cell}
+            </span>
+          ))}
+        </div>
+        <p className="mt-3 font-mono text-[8px] text-slate-500">p-value = 0.032</p>
+      </div>
+
+      <div className="hero-paper hero-paper-trend">
+        <div className="flex items-center justify-between">
+          <span className="hero-paper-kicker">TREND REPORT</span>
+          <TrendingUp className="h-3.5 w-3.5 text-teal-600" />
+        </div>
+        <svg className="mt-3 h-16 w-full" viewBox="0 0 120 56" fill="none">
+          <path d="M4 46H116M4 28H116M4 10H116" stroke="#cbd5e1" strokeDasharray="2 3" />
+          <path
+            d="M5 43C18 39 23 42 34 34C44 27 51 34 62 25C72 17 81 23 91 15C101 7 106 11 116 5"
+            stroke="#249b93"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          <circle cx="62" cy="25" r="3" fill="#f36b2b" />
+          <circle cx="116" cy="5" r="3" fill="#f36b2b" />
+        </svg>
+        <div className="mt-1 flex justify-between font-mono text-[7px] text-slate-400">
+          <span>W01</span>
+          <span>W06</span>
+          <span>W12</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /**
  * Halaman pembuka aplikasi bergaya dub.co yang menjadi gerbang menuju Workspace Dashboard.
  */
@@ -121,21 +198,15 @@ function LandingPage({
     <div className="animate-page-enter min-h-screen bg-white text-zinc-950">
       {/* Top Navigation Bar */}
       <header className="sticky top-0 z-30 border-b border-zinc-200/70 bg-white/90 backdrop-blur-sm">
-        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-6">
+        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
           {/* Kiri: Logo + Wordmark */}
           <button
             type="button"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="flex cursor-pointer items-center gap-2.5 text-left"
           >
-            <div
-              className="relative flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-zinc-950"
-              aria-hidden="true"
-            >
-              <span className="absolute top-1 right-1 h-1 w-1 rounded-[1px] bg-[#F97316]" />
-              <span className="h-2 w-2 rounded-[2px] border border-zinc-400/70" />
-            </div>
-            <span className="text-lg font-bold tracking-tight text-zinc-950">
+            <BrandMark className="h-5 w-5 shrink-0" />
+            <span className="text-sm font-bold tracking-tight text-zinc-950">
               advokastra
             </span>
           </button>
@@ -169,86 +240,118 @@ function LandingPage({
           <button
             type="button"
             onClick={() => onOpenDashboard('overview')}
-            className="cursor-pointer rounded-lg bg-zinc-950 px-3.5 py-2 text-xs font-medium text-white transition-colors hover:bg-zinc-800"
+            className="glass-button glass-button-dark cursor-pointer rounded-lg px-3.5 py-2 text-xs font-medium text-white"
           >
             Dashboard
           </button>
         </div>
       </header>
 
-      {/* Hero Section dengan Latar Grid Halus */}
-      <section className="relative overflow-hidden pt-16 pb-14 sm:pt-20 sm:pb-16">
+      {/* Hero Section dengan tipografi editorial dan latar grid halus */}
+      <section className="relative overflow-hidden pt-16 pb-20 sm:pt-20 sm:pb-24">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 [mask-image:linear-gradient(to_bottom,black_55%,transparent_100%)]"
+          className="pointer-events-none absolute inset-0 [mask-image:linear-gradient(to_bottom,black_66%,transparent_100%)]"
           style={{
             backgroundImage:
-              'linear-gradient(to right, #f4f4f5 1px, transparent 1px), linear-gradient(to bottom, #f4f4f5 1px, transparent 1px)',
-            backgroundSize: '64px 64px',
+              'linear-gradient(to right, rgba(148,163,184,0.18) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.18) 1px, transparent 1px)',
+            backgroundSize: '48px 48px',
           }}
         />
 
-        <div className="relative mx-auto max-w-5xl px-6 text-center">
-          {/* Announcement Pill */}
-          <div className="mb-6 inline-flex items-center overflow-hidden rounded-full border border-zinc-200 bg-white text-xs shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-            <span className="px-3 py-1 font-medium text-zinc-700">
-              Studi Kasus BEM UPI Kampus Cibiru
-            </span>
-            <button
-              type="button"
-              onClick={onDownloadTemplate}
-              className="flex cursor-pointer items-center gap-1 border-l border-zinc-200 px-3 py-1 text-zinc-500 transition-colors hover:text-zinc-900"
-            >
-              <span>Unduh Template CSV</span>
-              <ArrowUpRight className="h-3 w-3" />
-            </button>
-          </div>
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute top-[16%] left-[58%] h-52 w-52 rounded-full bg-orange-200/20 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute right-[16%] bottom-[10%] h-56 w-56 rounded-full bg-teal-200/20 blur-3xl"
+        />
 
-          {/* Headline Utama (proporsi ringan identik dub.co) */}
-          <h1 className="mx-auto max-w-2xl text-4xl font-medium leading-[1.12] tracking-[-0.03em] text-zinc-950 sm:text-5xl">
-            Ubah aspirasi mahasiswa menjadi keputusan terukur
-          </h1>
+        <div aria-hidden="true" className="hero-god-rays" />
 
-          {/* Subheadline */}
-          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-zinc-500">
-            Platform analisis pola distribusi, uji independensi Chi-Square, dan prediksi tren volume aspirasi Advokastra UPI Cibiru berbasis data.
-          </p>
+        <HeroPaperIllustrations />
 
-          {/* 2 Tombol CTA Utama */}
-          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv,text/csv"
-              onChange={handleFileChange}
-              className="hidden"
-              aria-label="Import Dataset CSV"
-            />
+        <div className="relative z-10 mx-auto max-w-5xl px-6">
+          <div className="mx-auto max-w-[860px]">
+            <h1 className="hero-title relative z-10 text-[clamp(2.75rem,8.2vw,7rem)] font-black leading-[0.84] tracking-[-0.065em]">
+              <span className="block whitespace-nowrap">
+                <span className="hero-word-ink">Ubah</span>
+                <span className="hero-word-orange hero-word-aspirasi ml-[0.06em]">
+                  aspirasi
+                </span>
+              </span>
+              <span className="hero-word-ink block">mahasiswa</span>
+              <span className="mt-[0.5em] flex items-end gap-[0.12em] pl-[0.02em] whitespace-nowrap">
+                <span className="hero-script hero-word-ink mb-[0.04em] text-[0.55em] font-normal tracking-[-0.06em]">
+                  menjadi
+                </span>
+                <span className="hero-word-orange text-[0.7em] tracking-[-0.055em]">
+                  keputusan
+                </span>
+              </span>
+              <span className="-mt-[0.1em] block pr-[0.5em] text-right text-[0.72em] tracking-[-0.055em]">
+                <span className="hero-word-teal hero-word-terukur">terukur</span>
+              </span>
+            </h1>
 
-            <button
-              type="button"
-              onClick={() => onOpenDashboard('overview')}
-              className="cursor-pointer rounded-lg bg-zinc-950 px-5 py-2.5 text-xs font-medium text-white transition-colors hover:bg-zinc-800"
-            >
-              Mulai Analisis
-            </button>
+            <div className="-mt-2 max-w-[470px] sm:-mt-7">
+              <p className="text-sm leading-relaxed text-slate-600 sm:text-base">
+                Platform analisis pola distribusi, uji independensi Chi-Square,
+                dan prediksi tren volume aspirasi Advokastra UPI Cibiru berbasis
+                data.
+              </p>
 
-            <button
-              type="button"
-              disabled={isImporting}
-              onClick={() => fileInputRef.current?.click()}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-5 py-2.5 text-xs font-medium text-zinc-800 transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isImporting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-              <span>{isImporting ? 'Memproses CSV...' : 'Import Dataset CSV'}</span>
-            </button>
+              {/* 2 Tombol CTA Utama */}
+              <div className="mt-5 flex flex-wrap items-center gap-3">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv,text/csv"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  aria-label="Import Dataset CSV"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => onOpenDashboard('overview')}
+                  className="glass-button glass-button-dark cursor-pointer rounded-xl px-5 py-3 text-sm font-medium text-white"
+                >
+                  Mulai Analisis
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isImporting}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="glass-button glass-button-light inline-flex cursor-pointer items-center gap-1.5 rounded-xl px-5 py-3 text-sm font-medium text-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {isImporting && (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  )}
+                  <span>
+                    {isImporting ? 'Memproses CSV...' : 'Import Dataset CSV'}
+                  </span>
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={onDownloadTemplate}
+                className="mt-4 inline-flex cursor-pointer items-center gap-1 text-xs font-medium text-slate-500 transition-colors hover:text-slate-900"
+              >
+                <span>Unduh template CSV</span>
+                <ArrowUpRight className="h-3 w-3" />
+              </button>
+            </div>
           </div>
 
           {/* Banner Error jika upload CSV dari halaman awal gagal validasi */}
           {notification && notification.type === 'error' && (
             <div
               role="alert"
-              className="mx-auto mt-6 flex max-w-xl items-start justify-between gap-3 rounded-xl border border-red-200 bg-white p-3.5 text-left shadow-[0_1px_2px_rgba(0,0,0,0.03)]"
+              className="glass-card mx-auto mt-8 flex max-w-[860px] items-start justify-between gap-3 rounded-xl p-3.5 text-left"
             >
               <div className="flex items-start gap-2.5">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
@@ -278,13 +381,13 @@ function LandingPage({
 
       {/* 3 Pill Modul Interaktif & Frame Preview Dashboard (Transisi Latar Lembut ala dub.co) */}
       <section className="px-4 sm:px-6">
-        <div className="mx-auto max-w-5xl rounded-t-[28px] border border-b-0 border-zinc-200/80 bg-[#F7F6F3] px-4 pt-8 pb-0 sm:rounded-t-[36px] sm:px-8 sm:pt-10">
+        <div className="glass-card mx-auto max-w-5xl rounded-t-[28px] border-b-0 px-4 pt-8 pb-0 sm:rounded-t-[36px] sm:px-8 sm:pt-10">
           {/* 3 Pill Tombol Modul */}
           <div className="mb-7 flex flex-wrap items-center justify-center gap-2.5">
             <button
               type="button"
               onClick={() => onOpenDashboard('overview')}
-              className="flex cursor-pointer items-center gap-2 rounded-xl border border-zinc-200/90 bg-white px-3.5 py-2 text-xs font-medium text-zinc-800 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-colors hover:border-zinc-300"
+              className="glass-card glass-card-interactive flex cursor-pointer items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-medium text-zinc-800"
             >
               <span className="flex h-5 w-5 items-center justify-center rounded-md bg-indigo-50 text-indigo-600">
                 <BarChart2 className="h-3.5 w-3.5" />
@@ -295,7 +398,7 @@ function LandingPage({
             <button
               type="button"
               onClick={() => onOpenDashboard('chisquare')}
-              className="flex cursor-pointer items-center gap-2 rounded-xl border border-zinc-200/90 bg-white px-3.5 py-2 text-xs font-medium text-zinc-800 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-colors hover:border-zinc-300"
+              className="glass-card glass-card-interactive flex cursor-pointer items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-medium text-zinc-800"
             >
               <span className="flex h-5 w-5 items-center justify-center rounded-md bg-emerald-50 text-emerald-600">
                 <Table2 className="h-3.5 w-3.5" />
@@ -306,7 +409,7 @@ function LandingPage({
             <button
               type="button"
               onClick={() => onOpenDashboard('regression')}
-              className="flex cursor-pointer items-center gap-2 rounded-xl border border-zinc-200/90 bg-white px-3.5 py-2 text-xs font-medium text-zinc-800 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-colors hover:border-zinc-300"
+              className="glass-card glass-card-interactive flex cursor-pointer items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-medium text-zinc-800"
             >
               <span className="flex h-5 w-5 items-center justify-center rounded-md bg-orange-50 text-[#F97316]">
                 <TrendingUp className="h-3.5 w-3.5" />
@@ -316,7 +419,7 @@ function LandingPage({
           </div>
 
           {/* Interactive Mini-Preview Window */}
-          <div className="mx-auto max-w-4xl rounded-t-2xl border border-b-0 border-zinc-200 bg-white p-5 text-left shadow-sm sm:p-6">
+          <div className="glass-card mx-auto max-w-4xl rounded-t-2xl border-b-0 p-5 text-left sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-100 pb-4">
               <div className="flex items-center gap-2.5">
                 <span
@@ -327,7 +430,7 @@ function LandingPage({
                   Ringkasan Dataset Aktif
                 </span>
                 <span className="font-mono text-xs tabular-nums text-zinc-500">
-                  ({datasetSource.isDefault ? 'Default' : datasetSource.name} ·{' '}
+                  ({datasetSource.name || 'Memuat sumber data'} ·{' '}
                   {previewStats.total} baris · {previewStats.totalWeeks} minggu)
                 </span>
               </div>
@@ -343,7 +446,7 @@ function LandingPage({
 
             {/* Baris Metrik Nyata */}
             <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="rounded-lg border border-zinc-200/80 bg-[#FAFAFA] p-3.5">
+              <div className="glass-card rounded-lg p-3.5">
                 <p className="text-[11px] font-medium text-zinc-500">
                   Total Aspirasi
                 </p>
@@ -355,7 +458,7 @@ function LandingPage({
                 </p>
               </div>
 
-              <div className="rounded-lg border border-zinc-200/80 bg-[#FAFAFA] p-3.5">
+              <div className="glass-card rounded-lg p-3.5">
                 <p className="text-[11px] font-medium text-zinc-500">
                   Kategori Dominan
                 </p>
@@ -369,7 +472,7 @@ function LandingPage({
                 </p>
               </div>
 
-              <div className="rounded-lg border border-zinc-200/80 bg-[#FAFAFA] p-3.5">
+              <div className="glass-card rounded-lg p-3.5">
                 <p className="text-[11px] font-medium text-zinc-500">
                   Laju Kedatangan (λ)
                 </p>
@@ -381,7 +484,7 @@ function LandingPage({
                 </p>
               </div>
 
-              <div className="rounded-lg border border-zinc-200/80 bg-[#FAFAFA] p-3.5">
+              <div className="glass-card rounded-lg p-3.5">
                 <p className="text-[11px] font-medium text-zinc-500">
                   Kemiringan Tren (b)
                 </p>
@@ -432,9 +535,9 @@ function LandingPage({
 
           <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3">
             {WORKFLOW_STEPS.map((step, index) => (
-              <div key={step.number} className="flex flex-col">
+              <div key={step.number} className="glass-card flex flex-col rounded-2xl p-5">
                 <div className="flex items-center gap-3">
-                  <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-zinc-200 bg-[#FAFAFA] font-mono text-xs font-medium tabular-nums text-zinc-900">
+                  <span className="glass-chip inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md font-mono text-xs font-medium tabular-nums text-zinc-900">
                     {step.number}
                   </span>
                   <div
@@ -475,7 +578,7 @@ function LandingPage({
             {METHODOLOGY_CARDS.map((card) => (
               <div
                 key={card.title}
-                className="flex flex-col justify-between gap-5 rounded-xl border border-zinc-200 bg-white p-6"
+                className="glass-card flex flex-col justify-between gap-5 rounded-xl p-6"
               >
                 <div>
                   <h3 className="text-sm font-medium text-zinc-950">
@@ -486,7 +589,7 @@ function LandingPage({
                   </p>
                 </div>
 
-                <div className="space-y-2 rounded-lg border border-zinc-200/80 bg-zinc-50 px-4 py-3 text-zinc-900 overflow-x-auto">
+                <div className="glass-card-subtle space-y-2 overflow-x-auto rounded-lg px-4 py-3 text-zinc-900">
                   {card.formulas.map((latexExpr, idx) => (
                     <MathFormula key={idx} latex={latexExpr} displayMode />
                   ))}
@@ -500,7 +603,7 @@ function LandingPage({
       {/* Section C — Cakupan Variabel Studi Kasus & Bottom CTA */}
       <section id="tentang" className="border-t border-zinc-200 bg-white px-6 py-16">
         <div className="mx-auto max-w-5xl">
-          <div className="grid grid-cols-1 items-center gap-8 rounded-2xl border border-zinc-200 bg-white p-6 sm:p-8 lg:grid-cols-12">
+          <div className="glass-card grid grid-cols-1 items-center gap-8 rounded-2xl p-6 sm:p-8 lg:grid-cols-12">
             {/* Kiri: Ringkasan Cakupan Studi Kasus */}
             <div className="lg:col-span-7">
               <p className="text-xs font-medium text-zinc-500">
@@ -522,7 +625,7 @@ function LandingPage({
                     {STUDY_PRODI.map((item) => (
                       <span
                         key={item}
-                        className="rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[11px] text-zinc-700"
+                        className="glass-chip rounded-md px-2 py-0.5 text-[11px] text-zinc-700"
                       >
                         {item}
                       </span>
@@ -538,7 +641,7 @@ function LandingPage({
                     {STUDY_KATEGORI.map((item) => (
                       <span
                         key={item}
-                        className="rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 text-[11px] text-zinc-700"
+                        className="glass-chip rounded-md px-2 py-0.5 text-[11px] text-zinc-700"
                       >
                         {item}
                       </span>
@@ -554,7 +657,7 @@ function LandingPage({
                     {STUDY_ANGKATAN.map((item) => (
                       <span
                         key={item}
-                        className="rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 font-mono text-[11px] tabular-nums text-zinc-700"
+                        className="glass-chip rounded-md px-2 py-0.5 font-mono text-[11px] tabular-nums text-zinc-700"
                       >
                         {item}
                       </span>
@@ -565,7 +668,7 @@ function LandingPage({
             </div>
 
             {/* Kanan: Kartu Ajakan Gelap */}
-            <div className="rounded-xl bg-zinc-950 p-6 text-white lg:col-span-5">
+            <div className="glass-card-dark rounded-xl p-6 text-white lg:col-span-5">
               <div className="flex items-center gap-2">
                 <span
                   className="h-2 w-2 rounded-full bg-[#F97316]"
@@ -586,7 +689,7 @@ function LandingPage({
               <button
                 type="button"
                 onClick={() => onOpenDashboard('overview')}
-                className="mt-5 inline-flex cursor-pointer items-center rounded-lg bg-white px-4 py-2 text-xs font-medium text-zinc-950 transition-colors hover:bg-zinc-100"
+                className="glass-button glass-button-light mt-5 inline-flex cursor-pointer items-center rounded-lg px-4 py-2 text-xs font-medium text-zinc-950"
               >
                 Buka Dashboard Analisis →
               </button>

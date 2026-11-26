@@ -6,9 +6,13 @@ import defaultDataset, {
   VALID_PRODI,
   VALID_STATUS,
   VALID_URGENSI,
-} from '../src/data/defaultDataset.js';
+} from '../scripts/seed-data/defaultDataset.js';
+import { analysisConfig, csvTemplateConfig } from '../scripts/seed-data/appConfig.js';
 import {
-  TEMPLATE_FILENAME,
+  normalizeAnalysisConfig,
+  validateAnalysisConfig,
+} from '../src/config/analysisDefaults.js';
+import {
   generateCSVTemplate,
   parseAspirasiCSV,
 } from '../src/utils/csvHelper.js';
@@ -46,6 +50,18 @@ test('defaultDataset berisi tepat 90 entri realistis 12 minggu (Sep–Nov 2026)'
   assert.ok(weeklyCounts.get(9) >= 10);
 });
 
+test('seed app_config memenuhi kontrak runtime Firestore', () => {
+  const normalized = normalizeAnalysisConfig(analysisConfig);
+  assert.doesNotThrow(() => validateAnalysisConfig(normalized));
+  assert.equal(normalized.defaults.proportionTarget, 'Fasilitas Kampus');
+  assert.equal(normalized.semantics.pendingStatus, 'Belum Diproses');
+  assert.ok(
+    csvTemplateConfig.requiredColumns.every((column) =>
+      csvTemplateConfig.columns.includes(column)
+    )
+  );
+});
+
 test('parseAspirasiCSV mendukung delimiter koma dan otomatis menghitung minggu_ke', async () => {
   const csv = [
     'tanggal,prodi,angkatan,kategori,urgensi,status,durasi_hari',
@@ -54,7 +70,11 @@ test('parseAspirasiCSV mendukung delimiter koma dan otomatis menghitung minggu_k
     '2026-09-22,Tekkom,2025,UKT & Keuangan,Tinggi,Belum Diproses,',
   ].join('\n');
 
-  const result = await parseAspirasiCSV(csv);
+  const result = await parseAspirasiCSV(csv, {
+    domains: analysisConfig.domains,
+    requiredColumns: csvTemplateConfig.requiredColumns,
+    pendingStatus: analysisConfig.semantics.pendingStatus,
+  });
   assert.equal(result.success, true);
   assert.equal(result.errors.length, 0);
   assert.equal(result.meta.delimiter, ',');
@@ -76,7 +96,11 @@ test('parseAspirasiCSV mendukung delimiter titik koma (;), BOM UTF-8, dan File/B
     text: async () => csvWithBom,
   };
 
-  const result = await parseAspirasiCSV(fakeFile);
+  const result = await parseAspirasiCSV(fakeFile, {
+    domains: analysisConfig.domains,
+    requiredColumns: csvTemplateConfig.requiredColumns,
+    pendingStatus: analysisConfig.semantics.pendingStatus,
+  });
   assert.equal(result.success, true);
   assert.equal(result.meta.delimiter, ';');
   assert.equal(result.data[0].prodi, 'Multimedia');
@@ -90,22 +114,29 @@ test('parseAspirasiCSV mendukung delimiter titik koma (;), BOM UTF-8, dan File/B
 
 test('parseAspirasiCSV menolak CSV yang kehilangan kolom wajib atau memiliki tanggal tidak valid', async () => {
   const missingColCsv = 'tanggal,prodi,kategori\n2026-09-01,RPL,Fasilitas Kampus';
-  const resMissing = await parseAspirasiCSV(missingColCsv);
+  const resMissing = await parseAspirasiCSV(missingColCsv, {
+    requiredColumns: csvTemplateConfig.requiredColumns,
+  });
   assert.equal(resMissing.success, false);
   assert.deepEqual(resMissing.meta.missingColumns, ['angkatan', 'urgensi', 'status']);
 
   const badDateCsv =
     'tanggal,prodi,angkatan,kategori,urgensi,status\n' +
     '2026-02-30,RPL,2024,Fasilitas Kampus,Tinggi,Selesai';
-  const resBadDate = await parseAspirasiCSV(badDateCsv);
+  const resBadDate = await parseAspirasiCSV(badDateCsv, {
+    requiredColumns: csvTemplateConfig.requiredColumns,
+  });
   assert.equal(resBadDate.success, false);
   assert.ok(resBadDate.errors[0].includes('Format tanggal'));
 });
 
 test('generateCSVTemplate menghasilkan template valid yang dapat di-parse kembali', async () => {
-  assert.equal(TEMPLATE_FILENAME, 'template_aspirasi_advokastra.csv');
-  const templateCsv = generateCSVTemplate(',');
-  const parsed = await parseAspirasiCSV(templateCsv);
+  const templateCsv = generateCSVTemplate(csvTemplateConfig, ',');
+  const parsed = await parseAspirasiCSV(templateCsv, {
+    domains: analysisConfig.domains,
+    requiredColumns: csvTemplateConfig.requiredColumns,
+    pendingStatus: analysisConfig.semantics.pendingStatus,
+  });
   assert.equal(parsed.success, true);
   assert.equal(parsed.data.length, 5);
 });

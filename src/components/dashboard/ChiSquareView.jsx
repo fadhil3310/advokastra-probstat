@@ -2,21 +2,14 @@ import { useMemo, useState } from 'react';
 import { calculateChiSquare } from '../../utils/statsEngine';
 import MathFormula from '../MathFormula';
 
-const VARIABLE_OPTIONS = [
-  { value: 'kategori', label: 'Kategori Aspirasi' },
-  { value: 'urgensi', label: 'Tingkat Urgensi' },
-  { value: 'prodi', label: 'Program Studi' },
-  { value: 'angkatan', label: 'Angkatan' },
-  { value: 'status', label: 'Status Penanganan' },
-];
-
-const ALPHA_OPTIONS = [0.01, 0.05, 0.1];
-
-function ChiSquareView({ dataset = [] }) {
-  const [rowField, setRowField] = useState('kategori');
-  const [colField, setColField] = useState('urgensi');
-  const [alpha, setAlpha] = useState(0.05);
+function ChiSquareView({ dataset = [], analysisConfig }) {
+  const defaults = analysisConfig.defaults;
+  const [rowField, setRowField] = useState(defaults.chiSquareRowField);
+  const [colField, setColField] = useState(defaults.chiSquareColField);
+  const [alpha, setAlpha] = useState(defaults.alpha);
   const [matrixMode, setMatrixMode] = useState('combined');
+  const variableOptions = analysisConfig.variableOptions;
+  const alphaOptions = analysisConfig.alphaOptions;
 
   const handleRowChange = (nextRow) => {
     if (nextRow === colField) {
@@ -33,14 +26,21 @@ function ChiSquareView({ dataset = [] }) {
   };
 
   const chi = useMemo(
-    () => calculateChiSquare(dataset, rowField, colField, alpha),
-    [dataset, rowField, colField, alpha]
+    () =>
+      calculateChiSquare(
+        dataset,
+        rowField,
+        colField,
+        alpha,
+        analysisConfig.domains
+      ),
+    [dataset, rowField, colField, alpha, analysisConfig.domains]
   );
 
   const rowLabelTitle =
-    VARIABLE_OPTIONS.find((v) => v.value === rowField)?.label ?? rowField;
+    variableOptions.find((v) => v.value === rowField)?.label ?? rowField;
   const colLabelTitle =
-    VARIABLE_OPTIONS.find((v) => v.value === colField)?.label ?? colField;
+    variableOptions.find((v) => v.value === colField)?.label ?? colField;
 
   return (
     <div className="space-y-5">
@@ -59,7 +59,7 @@ function ChiSquareView({ dataset = [] }) {
             onChange={(e) => handleRowChange(e.target.value)}
             className="h-9 w-full rounded-lg border border-zinc-200 bg-white px-3 text-xs text-zinc-900 focus:border-zinc-950 focus:outline-none"
           >
-            {VARIABLE_OPTIONS.map((opt) => (
+            {variableOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
@@ -80,7 +80,7 @@ function ChiSquareView({ dataset = [] }) {
             onChange={(e) => handleColChange(e.target.value)}
             className="h-9 w-full rounded-lg border border-zinc-200 bg-white px-3 text-xs text-zinc-900 focus:border-zinc-950 focus:outline-none"
           >
-            {VARIABLE_OPTIONS.map((opt) => (
+            {variableOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
@@ -93,7 +93,8 @@ function ChiSquareView({ dataset = [] }) {
             Taraf Signifikansi (α)
           </span>
           <div className="grid grid-cols-3 gap-1 rounded-lg border border-zinc-200 bg-zinc-50 p-1">
-            {ALPHA_OPTIONS.map((val) => {
+            {alphaOptions.map((option) => {
+              const val = option.value;
               const isActive = alpha === val;
               return (
                 <button

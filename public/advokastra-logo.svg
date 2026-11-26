@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 80" fill="none">
+  <title>Advokastra</title>
+  <g transform="translate(8 8)">
+    <path
+      fill="#18181B"
+      d="M12 4h40c4.42 0 8 3.58 8 8v32c0 4.42-3.58 8-8 8H32.38L20 60v-8h-8c-4.42 0-8-3.58-8-8V12c0-4.42 3.58-8 8-8Z"
+    />
+    <path
+      fill="#FAFAFA"
+      fill-rule="evenodd"
+      d="M29.24 15.92a3.05 3.05 0 0 1 5.52 0L47.1 43.75h-8.34l-2.22-5.42h-9.2l-2.2 5.42H16.9l12.34-27.83Zm2.72 10.64-2.25 5.56h4.5l-2.25-5.56Z"
+      clip-rule="evenodd"
+    />
+    <path
+      stroke="#F97316"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="3.25"
+      d="m23.5 38 6.35-6.05 5.15 2.8 7.2-8.1"
+    />
+    <rect width="6" height="6" x="39.2" y="23.65" fill="#F97316" rx="1.75" />
+  </g>
+  <text
+    x="88"
+    y="52"
+    fill="#18181B"
+    font-family="Geist, Inter, Arial, sans-serif"
+    font-size="39"
+    font-weight="700"
+    letter-spacing="-1.6"
+  >advokastra</text>
+</svg>

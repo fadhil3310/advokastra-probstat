@@ -1,55 +1,54 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import {
+  getAuthErrorMessage,
+  loginAsGuest,
+  loginWithEmail,
+} from '../services/authService';
+import BrandMark from './BrandMark';
 
 /**
- * Halaman autentikasi simulasi bergaya dub.co sebelum memasuki Workspace Dashboard.
+ * Halaman autentikasi Firebase sebelum memasuki Workspace Dashboard.
  */
 function LoginPage({
   onLoginSuccess,
   onBackToLanding,
   loginHint = null,
 }) {
-  const [email, setEmail] = useState('advokastra@upi.edu');
-  const [password, setPassword] = useState('advokastra2026');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loadingMode, setLoadingMode] = useState(null);
-  const timerRef = useRef(null);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, []);
+  const [authError, setAuthError] = useState(null);
 
   const isLoading = loadingMode !== null;
 
-  const triggerLogin = (mode, userPayload) => {
-    if (isLoading) return;
-    setLoadingMode(mode);
-    timerRef.current = setTimeout(() => {
-      onLoginSuccess(userPayload);
-    }, 520);
-  };
-
-  const handleFormSubmit = (event) => {
+  const handleFormSubmit = async (event) => {
     event.preventDefault();
-    const resolvedEmail = email.trim() || 'advokastra@upi.edu';
-    triggerLogin('form', {
-      name: 'Pengurus Advokastra',
-      displayLabel: 'Advokastra · UPI Cibiru',
-      email: resolvedEmail,
-      isGuest: false,
-    });
+    if (isLoading) return;
+
+    setAuthError(null);
+    setLoadingMode('form');
+    try {
+      const user = await loginWithEmail(email, password);
+      onLoginSuccess(user);
+    } catch (error) {
+      setAuthError(getAuthErrorMessage(error));
+      setLoadingMode(null);
+    }
   };
 
-  const handleGuestLogin = () => {
-    triggerLogin('guest', {
-      name: 'Dosen / Tamu Penguji',
-      displayLabel: 'Tamu Penguji',
-      email: 'tamu@upi.edu',
-      isGuest: true,
-    });
+  const handleGuestLogin = async () => {
+    if (isLoading) return;
+
+    setAuthError(null);
+    setLoadingMode('guest');
+    try {
+      const user = await loginAsGuest();
+      onLoginSuccess(user);
+    } catch (error) {
+      setAuthError(getAuthErrorMessage(error));
+      setLoadingMode(null);
+    }
   };
 
   return (
@@ -91,15 +90,18 @@ function LoginPage({
             </div>
           )}
 
+          {authError && (
+            <div
+              role="alert"
+              className="mb-5 rounded-lg border border-red-200 bg-red-50/60 px-3 py-2 text-xs text-red-700"
+            >
+              {authError}
+            </div>
+          )}
+
           {/* Header Kartu */}
           <div className="text-center">
-            <div
-              className="relative mx-auto flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-950"
-              aria-hidden="true"
-            >
-              <span className="absolute top-1.5 right-1.5 h-1 w-1 rounded-[1px] bg-[#F97316]" />
-              <span className="h-2.5 w-2.5 rounded-[2px] border border-zinc-400/70" />
-            </div>
+            <BrandMark className="mx-auto h-9 w-9" />
 
             <h1 className="mt-4 text-center text-lg font-medium tracking-tight text-zinc-950">
               Masuk ke Advokastra

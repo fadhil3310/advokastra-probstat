@@ -2,24 +2,13 @@ import { useMemo, useState } from 'react';
 import { calculateDescriptive, calculateProportionCI } from '../../utils/statsEngine';
 import MathFormula from '../MathFormula';
 
-const FIELD_OPTIONS = [
-  { value: 'kategori', label: 'Kategori Aspirasi' },
-  { value: 'prodi', label: 'Program Studi' },
-  { value: 'angkatan', label: 'Angkatan' },
-  { value: 'urgensi', label: 'Tingkat Urgensi' },
-  { value: 'status', label: 'Status Penanganan' },
-];
-
-const CONFIDENCE_LEVELS = [
-  { value: 0.9, label: '90%' },
-  { value: 0.95, label: '95%' },
-  { value: 0.99, label: '99%' },
-];
-
-function ProportionView({ dataset = [] }) {
-  const [selectedField, setSelectedField] = useState('kategori');
-  const [targetValue, setTargetValue] = useState('Fasilitas Kampus');
-  const [confidenceLevel, setConfidenceLevel] = useState(0.95);
+function ProportionView({ dataset = [], analysisConfig }) {
+  const defaults = analysisConfig.defaults;
+  const [selectedField, setSelectedField] = useState(defaults.proportionField);
+  const [targetValue, setTargetValue] = useState(defaults.proportionTarget);
+  const [confidenceLevel, setConfidenceLevel] = useState(defaults.confidenceLevel);
+  const fieldOptions = analysisConfig.variableOptions;
+  const confidenceLevels = analysisConfig.confidenceLevels;
 
   const descriptive = useMemo(
     () => calculateDescriptive(dataset, selectedField),
@@ -81,7 +70,7 @@ function ProportionView({ dataset = [] }) {
                 onChange={(e) => setSelectedField(e.target.value)}
                 className="h-9 w-full rounded-lg border border-zinc-200 bg-white px-3 text-xs text-zinc-900 focus:border-zinc-950 focus:outline-none"
               >
-                {FIELD_OPTIONS.map((opt) => (
+                {fieldOptions.map((opt) => (
                   <option key={opt.value} value={opt.value}>
                     {opt.label}
                   </option>
@@ -115,7 +104,7 @@ function ProportionView({ dataset = [] }) {
                 Tingkat Kepercayaan (1 − α)
               </span>
               <div className="grid grid-cols-3 gap-1 rounded-lg border border-zinc-200 bg-zinc-50 p-1">
-                {CONFIDENCE_LEVELS.map((cl) => {
+                {confidenceLevels.map((cl) => {
                   const isActive = confidenceLevel === cl.value;
                   return (
                     <button

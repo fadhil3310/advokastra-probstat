@@ -8,8 +8,7 @@ function DatasetDrawer({
   isOpen,
   onClose,
   dataset = [],
-  datasetName = 'Default',
-  isDefaultDataset = true,
+  datasetName = '',
 }) {
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -44,7 +43,7 @@ function DatasetDrawer({
               Data Mentah Aspirasi
             </h2>
             <span className="rounded-md border border-zinc-200 bg-zinc-50 px-2 py-0.5 font-mono text-[11px] tabular-nums text-zinc-600">
-              {isDefaultDataset ? 'Default' : datasetName} · {dataset.length} baris
+              {datasetName} · {dataset.length} baris
             </span>
           </div>
 

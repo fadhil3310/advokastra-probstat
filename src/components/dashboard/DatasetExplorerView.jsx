@@ -1,34 +1,38 @@
 import { useMemo, useState } from 'react';
 import { RotateCcw, Search } from 'lucide-react';
 
-const PAGE_SIZE = 15;
-
-function StatusBadge({ status }) {
-  if (status === 'Selesai') {
+function StatusBadge({ status, semantics }) {
+  if (status === semantics.completedStatus) {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200/80 bg-emerald-50/70 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
         <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
-        Selesai
+        {status}
       </span>
     );
   }
-  if (status === 'Dalam Proses') {
+  if (status === semantics.inProgressStatus) {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-700">
         <span className="h-1.5 w-1.5 rounded-full bg-[#F97316]" />
-        Dalam Proses
+        {status}
       </span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1.5 rounded-md border border-zinc-200 bg-white px-2 py-0.5 text-[11px] font-medium text-zinc-500">
       <span className="h-1.5 w-1.5 rounded-full bg-zinc-400" />
-      Belum Diproses
+      {status}
     </span>
   );
 }
 
-function DatasetExplorerView({ dataset = [], datasetName = 'Default' }) {
+function DatasetExplorerView({
+  dataset = [],
+  datasetName = 'Default',
+  analysisConfig,
+}) {
+  const pageSize = analysisConfig.defaults.datasetPageSize;
+  const semantics = analysisConfig.semantics;
   const [searchQuery, setSearchQuery] = useState('');
   const [prodiFilter, setProdiFilter] = useState('ALL');
   const [angkatanFilter, setAngkatanFilter] = useState('ALL');
@@ -80,10 +84,10 @@ function DatasetExplorerView({ dataset = [], datasetName = 'Default' }) {
     statusFilter,
   ]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
   const safePage = Math.min(page, totalPages);
-  const startIdx = (safePage - 1) * PAGE_SIZE;
-  const pageRows = filteredRows.slice(startIdx, startIdx + PAGE_SIZE);
+  const startIdx = (safePage - 1) * pageSize;
+  const pageRows = filteredRows.slice(startIdx, startIdx + pageSize);
 
   const hasActiveFilter =
     searchQuery.trim() !== '' ||
@@ -257,14 +261,14 @@ function DatasetExplorerView({ dataset = [], datasetName = 'Default' }) {
                     </td>
                     <td className="whitespace-nowrap px-4 py-2.5 text-zinc-700">
                       <span className="inline-flex items-center gap-1.5">
-                        {row.urgensi === 'Tinggi' && (
+                        {row.urgensi === semantics.highUrgency && (
                           <span className="h-1.5 w-1.5 rounded-full bg-[#F97316]" />
                         )}
                         <span>{row.urgensi}</span>
                       </span>
                     </td>
                     <td className="whitespace-nowrap px-4 py-2.5">
-                      <StatusBadge status={row.status} />
+                      <StatusBadge status={row.status} semantics={semantics} />
                     </td>
                     <td className="whitespace-nowrap px-4 py-2.5 text-right font-mono text-[11px] tabular-nums text-zinc-600">
                       {row.durasi_hari !== null && row.durasi_hari !== undefined
@@ -282,7 +286,7 @@ function DatasetExplorerView({ dataset = [], datasetName = 'Default' }) {
           <span className="font-mono text-[11px] tabular-nums">
             {filteredRows.length === 0
               ? '0 baris'
-              : `Menampilkan ${startIdx + 1}–${Math.min(startIdx + PAGE_SIZE, filteredRows.length)} dari ${filteredRows.length} baris`}
+              : `Menampilkan ${startIdx + 1}–${Math.min(startIdx + pageSize, filteredRows.length)} dari ${filteredRows.length} baris`}
           </span>
 
           <div className="flex items-center gap-1.5">

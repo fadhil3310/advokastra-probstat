@@ -8,6 +8,7 @@ import {
   Table2,
   TrendingUp,
 } from 'lucide-react';
+import BrandMark from './BrandMark';
 
 /**
  * Sidebar navigasi tetap kiri bergaya app.dub.co + Linear (lebar w-64).
@@ -20,14 +21,15 @@ function Sidebar({
   onImportCSV,
   onOpenDrawer,
   authUser = null,
-  datasetName = 'Default',
-  isDefaultDataset = true,
+  datasetName = '',
   rowCount = 0,
 }) {
   const fileInputRef = useRef(null);
 
-  const displayName = isDefaultDataset ? 'Default' : datasetName;
-  const profileLabel = authUser?.isGuest ? 'Tamu Penguji' : 'Pengurus Advokastra';
+  const displayName = datasetName;
+  const profileLabel = authUser?.isGuest
+    ? 'Tamu Penguji'
+    : authUser?.email || 'Pengurus Advokastra';
 
   const navGroups = [
     {
@@ -98,13 +100,7 @@ function Sidebar({
             className="flex min-w-0 cursor-pointer items-center gap-2.5 text-left transition-opacity hover:opacity-80"
             title="Kembali ke halaman awal"
           >
-            <div
-              className="relative flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-zinc-950"
-              aria-hidden="true"
-            >
-              <span className="absolute top-1 right-1 h-1 w-1 rounded-[1px] bg-[#F97316]" />
-              <span className="h-2 w-2 rounded-[2px] border border-zinc-400/70" />
-            </div>
+            <BrandMark className="h-7 w-7 shrink-0" />
             <span className="truncate text-sm font-semibold tracking-tight text-zinc-900">
               Advokastra
             </span>

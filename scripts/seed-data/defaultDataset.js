@@ -1,4 +1,8 @@
 /**
+ * Seed fixture untuk migrasi awal Firestore.
+ * File ini hanya boleh diimpor oleh seed script dan test; runtime aplikasi
+ * membaca dataset default dari Firestore.
+ *
  * Dataset dummy default aspirasi mahasiswa Advokastra UPI Kampus Cibiru
  * Periode: 12 minggu terakhir (1 September – 23 November 2026)
  * Total: 90 entri dengan tren mingguan naik bertahap serta lonjakan di minggu KRS (Minggu 2) dan UTS (Minggu 8–9).

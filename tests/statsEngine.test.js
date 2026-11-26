@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import defaultDataset from '../src/data/defaultDataset.js';
+import defaultDataset from '../scripts/seed-data/defaultDataset.js';
 import {
   calculateChiSquare,
   calculateDescriptive,

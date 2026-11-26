@@ -10,9 +10,11 @@ import {
 
 ensureChartsRegistered();
 
-function PoissonView({ dataset = [] }) {
+function PoissonView({ dataset = [], analysisConfig }) {
   const [categoryFilter, setCategoryFilter] = useState('ALL');
-  const [targetX, setTargetX] = useState(8);
+  const [targetX, setTargetX] = useState(
+    analysisConfig.defaults.poissonTargetX
+  );
 
   const categoryOptions = useMemo(
     () =>

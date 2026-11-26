@@ -14,19 +14,6 @@ import jstatPkg from 'jstat';
 
 const jStat = jstatPkg?.jStat ?? jstatPkg;
 
-const DOMAIN_ORDER = {
-  urgensi: ['Rendah', 'Sedang', 'Tinggi'],
-  status: ['Belum Diproses', 'Dalam Proses', 'Selesai'],
-  prodi: ['RPL', 'Tekkom', 'PGSD', 'PGPAUD', 'Multimedia'],
-  kategori: [
-    'Fasilitas Kampus',
-    'Akademik & Perkuliahan',
-    'UKT & Keuangan',
-    'Layanan Administrasi',
-    'Kemahasiswaan',
-  ],
-};
-
 function clamp(value, minVal, maxVal) {
   return Math.min(maxVal, Math.max(minVal, value));
 }
@@ -49,8 +36,8 @@ function getWeekBounds(data) {
   };
 }
 
-function sortDomainValues(values, field) {
-  const order = DOMAIN_ORDER[field];
+function sortDomainValues(values, field, domainOrder = {}) {
+  const order = domainOrder[field];
   if (order) {
     const indexMap = new Map(order.map((item, idx) => [item, idx]));
     return [...values].sort((a, b) => {
@@ -331,7 +318,13 @@ export function calculateProportionCI(data, field, targetValue, confidenceLevel 
  * @param {number} [alpha=0.05] Taraf signifikansi (mis. 0.01, 0.05, 0.10)
  * @returns {Object} Matriks O_ij, matriks E_ij, statistik uji, df, nilai kritis, p-value, dan kesimpulan
  */
-export function calculateChiSquare(data, rowField, colField, alpha = 0.05) {
+export function calculateChiSquare(
+  data,
+  rowField,
+  colField,
+  alpha = 0.05,
+  domainOrder = {}
+) {
   if (!Array.isArray(data)) {
     throw new TypeError('Parameter "data" harus berupa array.');
   }
@@ -390,8 +383,8 @@ export function calculateChiSquare(data, rowField, colField, alpha = 0.05) {
     cellCounts.set(pairKey, (cellCounts.get(pairKey) ?? 0) + 1);
   }
 
-  const rowLabels = sortDomainValues(rowSet, rowField);
-  const colLabels = sortDomainValues(colSet, colField);
+  const rowLabels = sortDomainValues(rowSet, rowField, domainOrder);
+  const colLabels = sortDomainValues(colSet, colField, domainOrder);
 
   const r = rowLabels.length;
   const c = colLabels.length;
