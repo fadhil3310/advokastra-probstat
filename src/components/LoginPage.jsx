@@ -52,7 +52,7 @@ function LoginPage({
   };
 
   return (
-    <div className="animate-page-enter relative flex min-h-screen flex-col justify-between overflow-hidden bg-[#FAFAFA] text-zinc-950">
+    <div className="relative flex min-h-screen flex-col justify-between overflow-hidden bg-[#FAFAFA] text-zinc-950">
       {/* Pola Grid Tipis yang Memudar Halus ke Bawah */}
       <div
         aria-hidden="true"
@@ -172,7 +172,7 @@ function LoginPage({
             <div className="h-px flex-1 bg-zinc-200" />
           </div>
 
-          <button
+          {/* <button
             type="button"
             disabled={isLoading}
             onClick={handleGuestLogin}
@@ -191,7 +191,7 @@ function LoginPage({
                 ? 'Membuka workspace...'
                 : 'Masuk sebagai Tamu / Dosen Penguji'}
             </span>
-          </button>
+          </button> */}
         </div>
       </main>
 

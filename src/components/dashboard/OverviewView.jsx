@@ -130,9 +130,9 @@ function OverviewView({ dataset = [], analysisConfig }) {
           })}
         </div>
 
-        <span className="font-mono text-[11px] tabular-nums text-zinc-500">
+        {/* <span className="font-mono text-[11px] tabular-nums text-zinc-500">
           {descriptive.frequencies.length} kelas unik · n = {descriptive.totalCount}
-        </span>
+        </span> */}
       </div>
 
       {/* KPI Strip Utama */}
@@ -251,12 +251,12 @@ function OverviewView({ dataset = [], analysisConfig }) {
             </div>
           </div>
 
-          <div className="mt-4 rounded-lg border border-zinc-200/80 bg-zinc-50 px-3 py-2 text-zinc-800">
+          {/* <div className="mt-4 rounded-lg border border-zinc-200/80 bg-zinc-50 px-3 py-2 text-zinc-800">
             <MathFormula
               latex={String.raw`\bar{x} = \frac{1}{n}\sum_{i=1}^{n} x_i, \quad s = \sqrt{\frac{\sum (x_i - \bar{x})^2}{n - 1}}`}
               displayMode
             />
-          </div>
+          </div> */}
         </div>
       </div>
 

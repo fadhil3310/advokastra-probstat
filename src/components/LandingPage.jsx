@@ -195,7 +195,7 @@ function LandingPage({
   };
 
   return (
-    <div className="animate-page-enter min-h-screen bg-white text-zinc-950">
+    <div className="min-h-screen bg-white text-zinc-950">
       {/* Top Navigation Bar */}
       <header className="sticky top-0 z-30 border-b border-zinc-200/70 bg-white/90 backdrop-blur-sm">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
@@ -421,19 +421,6 @@ function LandingPage({
           {/* Interactive Mini-Preview Window */}
           <div className="glass-card mx-auto max-w-4xl rounded-t-2xl border-b-0 p-5 text-left sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-100 pb-4">
-              <div className="flex items-center gap-2.5">
-                <span
-                  className="h-2 w-2 rounded-full bg-[#F97316]"
-                  aria-hidden="true"
-                />
-                <span className="text-xs font-medium text-zinc-900">
-                  Ringkasan Dataset Aktif
-                </span>
-                <span className="font-mono text-xs tabular-nums text-zinc-500">
-                  ({datasetSource.name || 'Memuat sumber data'} ·{' '}
-                  {previewStats.total} baris · {previewStats.totalWeeks} minggu)
-                </span>
-              </div>
 
               <button
                 type="button"
@@ -603,9 +590,9 @@ function LandingPage({
       {/* Section C — Cakupan Variabel Studi Kasus & Bottom CTA */}
       <section id="tentang" className="border-t border-zinc-200 bg-white px-6 py-16">
         <div className="mx-auto max-w-5xl">
-          <div className="glass-card grid grid-cols-1 items-center gap-8 rounded-2xl p-6 sm:p-8 lg:grid-cols-12">
+          <div className="glass-card  items-center gap-8 rounded-2xl p-6 sm:p-8 lg:grid-cols-12">
             {/* Kiri: Ringkasan Cakupan Studi Kasus */}
-            <div className="lg:col-span-7">
+            {/* <div className="lg:col-span-7">
               <p className="text-xs font-medium text-zinc-500">
                 Tentang Studi Kasus
               </p>
@@ -665,33 +652,20 @@ function LandingPage({
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             {/* Kanan: Kartu Ajakan Gelap */}
             <div className="glass-card-dark rounded-xl p-6 text-white lg:col-span-5">
-              <div className="flex items-center gap-2">
-                <span
-                  className="h-2 w-2 rounded-full bg-[#F97316]"
-                  aria-hidden="true"
-                />
-                <span className="font-mono text-[11px] text-zinc-400">
-                  {previewStats.total} entri siap dianalisis
-                </span>
-              </div>
-
               <h3 className="mt-3 text-lg font-medium tracking-[-0.02em] text-white">
                 Siap mengeksplorasi data aspirasi?
               </h3>
-              <p className="mt-1.5 text-xs leading-relaxed text-zinc-400">
-                Masuk ke workspace untuk menguji proporsi, tabel kontingensi Chi-Square, regresi tren mingguan, dan distribusi Poisson.
-              </p>
 
               <button
                 type="button"
                 onClick={() => onOpenDashboard('overview')}
                 className="glass-button glass-button-light mt-5 inline-flex cursor-pointer items-center rounded-lg px-4 py-2 text-xs font-medium text-zinc-950"
               >
-                Buka Dashboard Analisis →
+                Buka Dashboard →
               </button>
             </div>
           </div>

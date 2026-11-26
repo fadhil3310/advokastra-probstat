@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, CheckCircle2, Info, Loader2, X } from 'lucide-react';
+import { flushSync } from 'react-dom';
+import { AlertCircle, CheckCircle2, Info, X } from 'lucide-react';
 import DatasetDrawer from './components/DatasetDrawer';
 import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
@@ -18,13 +19,21 @@ import { loadApplicationData } from './services/firestoreService';
 import { downloadCSVTemplate, parseAspirasiCSV } from './utils/csvHelper';
 
 const MENU_TITLES = {
-  overview: 'Ikhtisar & Pola',
+  overview: 'Overview',
   dataset: 'Explorer Dataset',
   proportion: 'Estimasi Proporsi (CI)',
   chisquare: 'Uji Independensi Chi-Square',
   regression: 'Prediksi Tren (Regresi)',
   poisson: 'Peluang Lonjakan (Poisson)',
 };
+
+const PAGE_DEPTH = {
+  landing: 0,
+  login: 1,
+  dashboard: 2,
+};
+
+const TAB_ORDER = Object.keys(MENU_TITLES);
 
 function waitMs(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -51,14 +60,22 @@ function App() {
   const [isAppDataLoading, setIsAppDataLoading] = useState(true);
   const [appDataError, setAppDataError] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
-  const [loadingTabLabel, setLoadingTabLabel] = useState(null);
+  const [pageMotion, setPageMotion] = useState({
+    direction: 'forward',
+    fallback: false,
+  });
+  const [tabMotion, setTabMotion] = useState({
+    direction: 'forward',
+    fallback: false,
+    sequence: 0,
+  });
   const [isImporting, setIsImporting] = useState(false);
   const [routeLoadingMessage, setRouteLoadingMessage] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [notification, setNotification] = useState(null);
 
-  const routeTimerRef = useRef(null);
-  const tabTimerRef = useRef(null);
+  const viewTransitionRef = useRef(null);
+  const viewTransitionTokenRef = useRef(0);
 
   useEffect(() => {
     const unsubscribeAuth = observeAuthState(setAuthUser);
@@ -92,30 +109,72 @@ function App() {
     return () => {
       cancelled = true;
       unsubscribeAuth();
-      if (routeTimerRef.current) clearTimeout(routeTimerRef.current);
-      if (tabTimerRef.current) clearTimeout(tabTimerRef.current);
+      viewTransitionRef.current?.skipTransition?.();
     };
   }, []);
 
-  const transitionToView = (nextView, message, afterSwitch, delayMs = 380) => {
-    if (routeTimerRef.current) clearTimeout(routeTimerRef.current);
-    setRouteLoadingMessage(message);
-    routeTimerRef.current = setTimeout(() => {
+  const runIOSViewTransition = (scope, direction, update) => {
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const canUseViewTransition =
+      typeof document.startViewTransition === 'function' && !reducedMotion;
+
+    viewTransitionRef.current?.skipTransition?.();
+    viewTransitionRef.current = null;
+
+    if (!canUseViewTransition) {
+      flushSync(() => update(!reducedMotion));
+      delete document.documentElement.dataset.iosTransitionScope;
+      delete document.documentElement.dataset.iosTransitionDirection;
+      return;
+    }
+
+    const transitionToken = viewTransitionTokenRef.current + 1;
+    viewTransitionTokenRef.current = transitionToken;
+    document.documentElement.dataset.iosTransitionScope = scope;
+    document.documentElement.dataset.iosTransitionDirection = direction;
+
+    const transition = document.startViewTransition(() => {
+      flushSync(() => update(false));
+    });
+    viewTransitionRef.current = transition;
+
+    transition.finished
+      .catch(() => {})
+      .finally(() => {
+        if (viewTransitionTokenRef.current !== transitionToken) return;
+        delete document.documentElement.dataset.iosTransitionScope;
+        delete document.documentElement.dataset.iosTransitionDirection;
+        viewTransitionRef.current = null;
+      });
+  };
+
+  const transitionToView = (nextView, afterSwitch) => {
+    if (nextView === view) return;
+    const direction = PAGE_DEPTH[nextView] > PAGE_DEPTH[view] ? 'forward' : 'back';
+
+    runIOSViewTransition('page', direction, (useFallback) => {
       if (afterSwitch) afterSwitch();
+      setPageMotion({ direction, fallback: useFallback });
       setView(nextView);
       setRouteLoadingMessage(null);
-      window.scrollTo({ top: 0 });
-    }, delayMs);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    });
   };
 
   const handleSelectTab = (tabId) => {
-    if (tabId === activeTab && !loadingTabLabel) return;
-    if (tabTimerRef.current) clearTimeout(tabTimerRef.current);
-    setLoadingTabLabel(MENU_TITLES[tabId] ?? 'modul');
-    tabTimerRef.current = setTimeout(() => {
+    if (tabId === activeTab || !MENU_TITLES[tabId]) return;
+    const direction =
+      TAB_ORDER.indexOf(tabId) > TAB_ORDER.indexOf(activeTab) ? 'forward' : 'back';
+
+    runIOSViewTransition('tab', direction, (useFallback) => {
+      setTabMotion((motion) => ({
+        direction,
+        fallback: useFallback,
+        sequence: motion.sequence + 1,
+      }));
       setActiveTab(tabId);
-      setLoadingTabLabel(null);
-    }, 280);
+    });
   };
 
   const contextLabel = useMemo(() => {
@@ -151,54 +210,35 @@ function App() {
       return;
     }
     if (authUser) {
-      transitionToView(
-        'dashboard',
-        `Membuka ${MENU_TITLES[targetTab]}...`,
-        () => setActiveTab(targetTab),
-        380
-      );
+      transitionToView('dashboard', () => setActiveTab(targetTab));
     } else {
-      transitionToView(
-        'login',
-        'Menuju halaman autentikasi...',
-        () => {
-          setPendingTab(targetTab);
-          setLoginHint(null);
-        },
-        320
-      );
+      transitionToView('login', () => {
+        setPendingTab(targetTab);
+        setLoginHint(null);
+      });
     }
   };
 
   const handleLoginSuccess = (user) => {
     const targetTab = MENU_TITLES[pendingTab] ? pendingTab : 'overview';
-    transitionToView(
-      'dashboard',
-      'Menyiapkan ruang kerja analisis...',
-      () => {
-        setAuthUser(user);
-        setActiveTab(targetTab);
-        setLoginHint(null);
-      },
-      360
-    );
+    transitionToView('dashboard', () => {
+      setAuthUser(user);
+      setActiveTab(targetTab);
+      setLoginHint(null);
+    });
   };
 
   const handleLogout = async () => {
     setRouteLoadingMessage('Mengakhiri sesi...');
     try {
       await logoutFirebaseUser();
-      transitionToView(
-        'landing',
-        'Mengakhiri sesi...',
-        () => {
-          setAuthUser(null);
-          setPendingTab('overview');
-          setLoginHint(null);
-          setIsDrawerOpen(false);
-        },
-        220
-      );
+      flushSync(() => setRouteLoadingMessage(null));
+      transitionToView('landing', () => {
+        setAuthUser(null);
+        setPendingTab('overview');
+        setLoginHint(null);
+        setIsDrawerOpen(false);
+      });
     } catch (error) {
       setRouteLoadingMessage(null);
       setNotification({
@@ -236,19 +276,12 @@ function App() {
         });
         if (fromLanding) {
           setPendingTab('overview');
+          flushSync(() => setIsImporting(false));
           if (authUser) {
-            transitionToView(
-              'dashboard',
-              'Memuat data ke ruang kerja...',
-              () => setActiveTab('overview'),
-              340
-            );
+            transitionToView('dashboard', () => setActiveTab('overview'));
           } else {
-            transitionToView(
-              'login',
-              'Menyiapkan dataset...',
-              () => setLoginHint('Dataset siap, silakan masuk untuk melihat hasil.'),
-              320
+            transitionToView('login', () =>
+              setLoginHint('Dataset siap, silakan masuk untuk melihat hasil.')
             );
           }
         }
@@ -288,21 +321,15 @@ function App() {
   };
 
   const handleResetDataset = () => {
-    if (tabTimerRef.current) clearTimeout(tabTimerRef.current);
-    setLoadingTabLabel('Dataset Default');
-    tabTimerRef.current = setTimeout(() => {
-      setDataset(firebaseDataset);
-      setDatasetSource(firebaseDatasetSource);
-      setNotification({
-        type: 'info',
-        title: 'Dataset dikembalikan ke Default',
-        details: [`Memuat ulang ${firebaseDataset.length} baris data aspirasi dari Firestore.`],
-      });
-      setLoadingTabLabel(null);
-    }, 320);
+    setDataset(firebaseDataset);
+    setDatasetSource(firebaseDatasetSource);
+    setNotification({
+      type: 'info',
+      title: 'Dataset dikembalikan ke Default',
+      details: [`Memuat ulang ${firebaseDataset.length} baris data aspirasi dari Firestore.`],
+    });
   };
 
-  const isTabTransitioning = loadingTabLabel !== null;
   const currentMenuTitle = MENU_TITLES[activeTab] ?? MENU_TITLES.overview;
   const activeDatasetLabel = datasetSource.name;
 
@@ -331,6 +358,13 @@ function App() {
     }
   };
 
+  const pageAnimationClass = pageMotion.fallback
+    ? `animate-ios-page-${pageMotion.direction}`
+    : '';
+  const tabAnimationClass = tabMotion.fallback
+    ? `animate-ios-tab-${tabMotion.direction}`
+    : '';
+
   return (
     <>
       <TopProgressBar
@@ -346,40 +380,48 @@ function App() {
       />
 
       {view === 'landing' && (
-        <LandingPage
-          dataset={dataset}
-          datasetSource={datasetSource}
-          isImporting={isImporting}
-          notification={notification}
-          onDismissNotification={() => setNotification(null)}
-          onOpenDashboard={handleOpenDashboard}
-          onImportCSV={(file) => handleImportCSV(file, { fromLanding: true })}
-          onDownloadTemplate={handleDownloadTemplate}
-        />
+        <div
+          key="landing"
+          className={`ios-page ${pageAnimationClass}`}
+        >
+          <LandingPage
+            dataset={dataset}
+            datasetSource={datasetSource}
+            isImporting={isImporting}
+            notification={notification}
+            onDismissNotification={() => setNotification(null)}
+            onOpenDashboard={handleOpenDashboard}
+            onImportCSV={(file) => handleImportCSV(file, { fromLanding: true })}
+            onDownloadTemplate={handleDownloadTemplate}
+          />
+        </div>
       )}
 
       {view === 'login' && (
-        <LoginPage
-          loginHint={loginHint}
-          onLoginSuccess={handleLoginSuccess}
-          onBackToLanding={() => {
-            transitionToView(
-              'landing',
-              'Kembali ke beranda...',
-              () => setLoginHint(null),
-              280
-            );
-          }}
-        />
+        <div
+          key="login"
+          className={`ios-page ${pageAnimationClass}`}
+        >
+          <LoginPage
+            loginHint={loginHint}
+            onLoginSuccess={handleLoginSuccess}
+            onBackToLanding={() =>
+              transitionToView('landing', () => setLoginHint(null))
+            }
+          />
+        </div>
       )}
 
       {view === 'dashboard' && (
-        <div className="animate-page-enter flex min-h-screen flex-col bg-[#FAFAFA] text-[#09090B] md:flex-row">
+        <div
+          key="dashboard"
+          className={`ios-page ${pageAnimationClass} flex min-h-screen flex-col bg-[#FAFAFA] text-[#09090B] md:flex-row`}
+        >
           <Sidebar
             activeTab={activeTab}
             onSelectTab={handleSelectTab}
             onBackToLanding={() =>
-              transitionToView('landing', 'Kembali ke beranda...', null, 280)
+              transitionToView('landing')
             }
             onLogout={handleLogout}
             onImportCSV={(file) => handleImportCSV(file)}
@@ -396,7 +438,6 @@ function App() {
                 contextLabel={contextLabel}
                 isDefaultDataset={datasetSource.isDefault}
                 isImporting={isImporting}
-                isLoading={isTabTransitioning}
                 onImportCSV={(file) => handleImportCSV(file)}
                 onDownloadTemplate={handleDownloadTemplate}
                 onResetDataset={handleResetDataset}
@@ -444,20 +485,12 @@ function App() {
                   </div>
                 )}
 
-                {isTabTransitioning ? (
-                  <div className="animate-overlay-in flex min-h-[380px] flex-col items-center justify-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-zinc-200 bg-[#FAFAFA]">
-                      <Loader2 className="h-4 w-4 animate-spin text-[#F97316]" />
-                    </div>
-                    <p className="text-xs font-medium text-zinc-500">
-                      Memuat {loadingTabLabel}...
-                    </p>
-                  </div>
-                ) : (
-                  <div key={activeTab} className="animate-page-enter">
-                    {renderDashboardContent()}
-                  </div>
-                )}
+                <div
+                  key={`${activeTab}-${tabMotion.sequence}`}
+                  className={`ios-dashboard-content ${tabAnimationClass}`}
+                >
+                  {renderDashboardContent()}
+                </div>
               </div>
             </main>
           </div>

@@ -37,7 +37,7 @@ function Sidebar({
       items: [
         {
           id: 'overview',
-          label: 'Ikhtisar & Pola',
+          label: 'Overview',
           icon: LayoutGrid,
         },
         {
