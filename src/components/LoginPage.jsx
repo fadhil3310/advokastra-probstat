@@ -166,11 +166,11 @@ function LoginPage({
           </form>
 
           {/* Pemisah & Tombol Akses Cepat Demo */}
-          <div className="my-4 flex items-center gap-3">
+          {/* <div className="my-4 flex items-center gap-3">
             <div className="h-px flex-1 bg-zinc-200" />
             <span className="text-[11px] uppercase text-zinc-400">atau</span>
             <div className="h-px flex-1 bg-zinc-200" />
-          </div>
+          </div> */}
 
           {/* <button
             type="button"

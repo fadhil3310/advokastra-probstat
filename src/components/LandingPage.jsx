@@ -287,7 +287,7 @@ function LandingPage({
                   keputusan
                 </span>
 
-                <span className="translate-y-10 block pr-[0.5em] text-right text-[0.72em] tracking-[-0.055em] ml-[0.05em]">
+                <span className="translate-y-5 lg:translate-y-10 block pr-[0.5em] text-right text-[0.72em] tracking-[-0.055em] ml-[0.05em]">
                   <span className="hero-word-teal hero-word-terukur">terukur</span>
                 </span>
               </span>
