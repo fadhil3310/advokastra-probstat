@@ -19,19 +19,19 @@ import MathFormula from './MathFormula';
 
 const WORKFLOW_STEPS = [
   {
-    number: '01',
+    number: '1',
     title: 'Ingesti & Validasi Data',
     description:
       'Unggah ekspor CSV dari Google Form Advokastra atau gunakan dataset simulasi 90 aspirasi mahasiswa UPI Cibiru (12 minggu).',
   },
   {
-    number: '02',
+    number: '2',
     title: 'Pengujian Hipotesis & Estimasi',
     description:
       'Hitung distribusi frekuensi, selang kepercayaan proporsi, dan uji independensi Chi-Square antar variabel kampus.',
   },
   {
-    number: '03',
+    number: '3',
     title: 'Proyeksi Tren & Kesiapan Layanan',
     description:
       'Prediksi volume aspirasi minggu berikutnya dengan Regresi Linear dan peluang lonjakan laporan via Distribusi Poisson.',
@@ -502,7 +502,7 @@ function LandingPage({
                 </div>
 
                 <h3 className="mt-4 text-sm font-medium text-zinc-950">
-                  {step.number}. {step.title}
+                  {step.title}
                 </h3>
                 <p className="mt-2 text-xs leading-relaxed text-zinc-500">
                   {step.description}
